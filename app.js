@@ -8,7 +8,7 @@ function sayHello(call, callback) {
 }
 
 function login(call, callback) {
-  if(call.request.user == 'daniel' && call.request.passwd == '12345') {
+  if(call.request.user == 'daniel@laube.online' && call.request.password == '12345') {
 	  callback(null, {message: 'Login successfull'}); 
   } else {
 	  callback(null, {message: 'Login failed'});
