@@ -1,0 +1,9 @@
+{
+  "name": "server",
+  "version": "0.0.1",
+  "main": "app.js",
+  "dependencies": {
+    "grpc": "^1.2.0",
+    "mongoose": "~3.8.8"
+  }
+}
