@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "0.0.1",
-  "main": "app.js",
+  "main": "server.js",
   "dependencies": {
     "grpc": "^1.2.0",
     "jsonwebtoken": "^7.3.0",
