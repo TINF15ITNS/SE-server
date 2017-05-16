@@ -6,24 +6,32 @@ var jwt = require('jsonwebtoken')
   , assert = require('assert')
   , crypto = require('crypto');
 
-var apiProto = grpc.load('./protos/service.proto').friendscommAPI
+var apiProto = grpc.load('./protos/service.proto').serverPackage
 var mongoUrl = 'mongodb://localhost:27017/friendscomm'
 const SECRET = 'geheimnisDesGrauens'
 
 var log = bunyan.createLogger({name: 'friendscomm-server'});
 log.info('Initialized logger')
 
-var db = MongoClient.connect(mongoUrl, (err, db) => {
+
+MongoClient.connect(mongoUrl, (err, database) => {
   if(err != null) {
     log.error({err: err}, 'Error connecting to database')
     process.exit(1)
   }
+  
+  if(database == null) {
+    log.error({err: err}, 'Error connecting to database')
+    process.exit(1)
+  }
+  
   log.info('Successfully connected to database')
-  return db
 })
 
+var db = MongoClient.db
+
 var server = new grpc.Server()
-server.addService(apiProto.ServerService.service, {
+server.addProtoService(apiProto.ServerService.service, {
   register: register,
   login: login,
   updateProfile: updateProfile,
@@ -37,8 +45,6 @@ server.start()
 log.info({port: 50051}, 'Successfully started gRPC server')
 
 
-
-
 connectToDB = function() {
   
 }
@@ -48,18 +54,44 @@ storeNewUserInDB = function() {
 }
 
 function searchForUserByName(nickname, callback) {
-  db.collection('users').find({nickname: nickname}).count( res => {
+  MongoClient.connect(mongoUrl, (err, database) => {
+  if(err != null) {
+    log.error({err: err}, 'Error connecting to database')
+    process.exit(1)
+  }
+  
+  if(database == null) {
+    log.error({err: err}, 'Error connecting to database')
+    process.exit(1)
+  }
+  
+  database.collection('users').find({nickname: nickname}).count().then(function(res) {
     if(res == 0) {
       callback(true)
     } else {
       callback(false)
     }
   })
+  })
+  
 }
 
-function getUserByName(nickname, callback) {
-  storedUser = db.collection('users').findOne({nickname: nickname})
-  callback(storedUser)
+function getUserByName(nickname, callback) { 
+  MongoClient.connect(mongoUrl, (err, database) => {
+  if(err != null) {
+    log.error({err: err}, 'Error connecting to database')
+    process.exit(1)
+  }
+  
+  if(database == null) {
+    log.error({err: err}, 'Error connecting to database')
+    process.exit(1)
+  }
+  
+    database.collection('users').findOne({nickname: nickname}).then(function(storedUser) {
+		callback(storedUser)  
+    })
+  })
 }
 
 getUserByID = function() {
@@ -80,15 +112,17 @@ function verifyToken() {
 function hashPassword(password) {
   var salt = crypto.randomBytes(128).toString('base64')
   var iterations = 10000
-  var hash = crypto.pbkdf2(password, salt, iterations)
+  var hash = crypto.pbkdf2Sync(password, salt, iterations, 512, 'sha512').toString('hex');
+  
   return {
     salt: salt,
     hash: hash,
     iterations: iterations
   }
 }
+
 function isPasswordValid(savedHash, savedSalt, savedIterations, passwordAttempt) {
-    return savedHash == crypto.pbkdf2(passwordAttempt, savedSalt, savedIterations)
+    return savedHash == crypto.pbkdf2Sync(passwordAttempt, savedSalt, savedIterations, 512, 'sha512').toString('hex');
 }
 
 // Implementations of gRPC functions
@@ -97,18 +131,34 @@ function isPasswordValid(savedHash, savedSalt, savedIterations, passwordAttempt)
 function register(call,callback) {
   var metadata = call.metadata;
   var userdata = call.request;
+  
   log.info({payload: userdata},'New register attempt')
   searchForUserByName(userdata.nickname, (registrationPossible) => {
     if(registrationPossible) {
       log.info('Registration is possible')
       newUser = new User(userdata.nickname, userdata.password)
-      db.collection('users').insertOne(newUser, (err, r) => {
+
+	MongoClient.connect(mongoUrl, (err, database) => {
         if(err != null) {
-          callback(null, {success: false})
-        } else {
-          callback(null, {success: true, token: generateToken(newUser.nickname)})
+          log.error({err: err}, 'Error connecting to database')
+          process.exit(1)
         }
-      })
+        
+        if(database == null) {
+          log.error({err: err}, 'Error connecting to database')
+          process.exit(1)
+        }
+        
+        database.collection('users').insertOne(newUser, (err, r) => {
+              if(err != null) {
+                callback(null, {success: false})
+              } else {
+                callback(null, {success: true, token: generateToken(newUser.nickname)})
+              }
+        })
+    })
+	  
+	  
     } else {
       callback(null, {success: false})
     }
@@ -120,7 +170,10 @@ function login(call, callback) {
   var userdata = call.request
   log.info({payload: userdata}, 'New login attempt')
   getUserByName(userdata.nickname, storedUser => {
-    if(storedUser != null && isPasswordValid(storedUser.hash, storedUser.salt, storedUser.iterations, userdata.password)) {
+	
+	console.log(storedUser)
+	
+    if(storedUser != null && storedUser != "" && isPasswordValid(storedUser.hash, storedUser.salt, storedUser.iterations, userdata.password)) {
       log.info('Login successfull')
       callback(null, {success: true, token: generateToken(userdata.nickname)})
     } else {
