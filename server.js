@@ -1,5 +1,4 @@
-var data = require('./data.js')
-  , jwt = require('jsonwebtoken')
+var jwt = require('jsonwebtoken')
   , uuidv4 = require('node-uuid')
   , grpc = require('grpc')
   , MongoClient = require('mongodb').MongoClient
