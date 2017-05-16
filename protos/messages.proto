@@ -7,13 +7,15 @@ option objc_class_prefix = "HLW";
 
 package friendscommAPI;
 
+/*import 'google/protobuf/timestamp.proto';*/
+
 // Request messages
 message RegisterRequest {
   string nickname = 1;
   string password = 2;
   string name = 3;
   string surname = 4;
-  Timestamp birthday = 5;
+  /*Timestamp birthday = 5;*/
   string telephone_number = 6;
   string email = 7;
   bool share_location = 8;

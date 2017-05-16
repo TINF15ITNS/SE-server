@@ -20,32 +20,32 @@ service ServerService {
   // Network
   rpc SearchForProfile            (SearchForProfileRequest) returns (SearchForProfileResponse) {}
   rpc GetProfileDetails           (GetProfileDetailsRequest) returns (GetProfileDetailsResponse) {}
-  rpc CreateGroup                 (CreateGroupRequest) returns (CreateGroupResponse) {}
-  rpc AddUserToGroup              (AddUserToGroupRequest) returns (Response) {} //? AddUser or AddFriend or AddToGroup
-  rpc GetFriendList               (GetFriendListRequest) returns (GetFriendListResponse) {}
-  rpc AddFriendToFriendList       (AddFriendRequest) returns (Response) {}
-  rpc RemoveFriendFromFriendList  (RemoveFriendRequest) returns (Response) {}
+//  rpc CreateGroup                 (CreateGroupRequest) returns (CreateGroupResponse) {}
+//  rpc AddUserToGroup              (AddUserToGroupRequest) returns (Response) {} //? AddUser or AddFriend or AddToGroup
+//  rpc GetFriendList               (GetFriendListRequest) returns (GetFriendListResponse) {}
+//  rpc AddFriendToFriendList       (AddFriendRequest) returns (Response) {}
+//  rpc RemoveFriendFromFriendList  (RemoveFriendRequest) returns (Response) {}
   
   // Todo-list
-  rpc CreateTodoList      (CreateTodoListRequest) returns (CreateTodoListResponse) {}
-  rpc GetTodoListsForUser (GetTodoListsForUserRequest) returns (GetTodoListsForUserResponse) {}
-  rpc GetTodoList         (GetTodoListRequest) returns (GetTodoListResponse) {}
-  rpc ShareTodoList       (ShareTodoListRequest) returns (Response) {}
-  rpc UpdateTodoListEntry (UpdateTodoListEntryRequest) returns (Response) {}
+//  rpc CreateTodoList      (CreateTodoListRequest) returns (CreateTodoListResponse) {}
+//  rpc GetTodoListsForUser (GetTodoListsForUserRequest) returns (GetTodoListsForUserResponse) {}
+//  rpc GetTodoList         (GetTodoListRequest) returns (GetTodoListResponse) {}
+//  rpc ShareTodoList       (ShareTodoListRequest) returns (Response) {}
+//  rpc UpdateTodoListEntry (UpdateTodoListEntryRequest) returns (Response) {}
 
   // Calendar
-  rpc ShareCalendarEntry (ShareCalendarEntryRequest) returns (Response) {}
+//  rpc ShareCalendarEntry (ShareCalendarEntryRequest) returns (Response) {}
   
   // Debts
-  rpc GetDebts    (GetDebtsRequest) returns (GetDebtsResponse) {}
-  rpc CreateDebt  (CreateDebtRequest) returns (Response) {}
-  rpc ConfirmDebt (ConfirmDebtRequest) returns (Response) {}
-  rpc UpdateDebt  (UpdateDebtRequest) returns (Response) {}
+//  rpc GetDebts    (GetDebtsRequest) returns (GetDebtsResponse) {}
+//  rpc CreateDebt  (CreateDebtRequest) returns (Response) {}
+//  rpc ConfirmDebt (ConfirmDebtRequest) returns (Response) {}
+//  rpc UpdateDebt  (UpdateDebtRequest) returns (Response) {}
 
 
   // Location
-  rpc UpdateLocation        (UpdateLocationRequest) returns (Response) {}
-  rpc ShareLocation         (ShareLocationRequest) returns (Response) {}
-  rpc GetSharedLocations    (GetSharedLocationsRequest) returns (GetSharedLocationsResponse) {}
-  rpc StartDriveByReminder  (StartDriveByReminderRequest) returns (Response) {}
+//  rpc UpdateLocation        (UpdateLocationRequest) returns (Response) {}
+//  rpc ShareLocation         (ShareLocationRequest) returns (Response) {}
+//  rpc GetSharedLocations    (GetSharedLocationsRequest) returns (GetSharedLocationsResponse) {}
+//  rpc StartDriveByReminder  (StartDriveByReminderRequest) returns (Response) {}
 }
