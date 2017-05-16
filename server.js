@@ -2,6 +2,7 @@ var jwt = require('jsonwebtoken')
   , uuidv4 = require('node-uuid')
   , grpc = require('grpc')
   , MongoClient = require('mongodb').MongoClient
+  , bunyan = require('bunyan')
   , assert = require('assert')
   , crypto = require('crypto');
 
@@ -9,15 +10,15 @@ var apiProto = grpc.load('./protos/service.proto').friendscommAPI
 var mongoUrl = 'mongodb://localhost:27017/friendscomm'
 const SECRET = 'geheimnisDesGrauens'
 
-
+var log = bunyan.createLogger({name: 'friendscomm-server'});
+log.info('Initialized logger')
 
 var db = MongoClient.connect(mongoUrl, (err, db) => {
   if(err != null) {
-    console.log("Error connecting to database")
-    console.log(err)
+    log.error({err: err}, 'Error connecting to database')
     process.exit(1)
   }
-  console.log('Successfully connected to database')
+  log.info('Successfully connected to database')
   return db
 })
 
@@ -33,6 +34,7 @@ server.addService(apiProto.ServerService.service, {
 })
 server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure())
 server.start()
+log.info({port: 50051}, 'Successfully started gRPC server')
 
 
 
@@ -95,18 +97,20 @@ function isPasswordValid(savedHash, savedSalt, savedIterations, passwordAttempt)
 function register(call,callback) {
   var metadata = call.metadata;
   var userdata = call.request;
-  console.log('Registering new user:\n')
-  console.log(userdata)
+  log.info({payload: userdata},'New register attempt')
   searchForUserByName(userdata.nickname, (registrationPossible) => {
     if(registrationPossible) {
+      log.info('Registration is possible')
       newUser = new User(userdata.nickname, userdata.password)
       db.collection('users').insertOne(newUser, (err, r) => {
         if(err != null) {
-          callback(err, {success: false})
+          callback(null, {success: false})
         } else {
           callback(null, {success: true, token: generateToken(newUser.nickname)})
         }
       })
+    } else {
+      callback(null, {success: false})
     }
   })
 }
@@ -114,12 +118,13 @@ function register(call,callback) {
 function login(call, callback) {
   var metadata = call.metadata
   var userdata = call.request
-  console.log('Logging In:\n')
-  console.log(userdata)
+  log.info({payload: userdata}, 'New login attempt')
   getUserByName(userdata.nickname, storedUser => {
     if(storedUser != null && isPasswordValid(storedUser.hash, storedUser.salt, storedUser.iterations, userdata.password)) {
+      log.info('Login successfull')
       callback(null, {success: true, token: generateToken(userdata.nickname)})
     } else {
+      log.info('Login not successfull')
       callback(null, {success: false})
     }
   })
