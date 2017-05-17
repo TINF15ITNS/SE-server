@@ -164,10 +164,10 @@ function getProfileDetails(call, callback) {
 function getUserName(call, callback) {
   try {
     console.log('Log', metadata.get('token')[0]);
-    var decoded = jwt.verify(metadata.get('token')[0], 'geheimnisDesGrauens');
+    var decoded = jwt.verify(metadata.get('token')[0], SECRET);
     console.log('Log', decoded);
 
-    var decoded = jwt.verify(call.metadata.getKey('token'), 'geheimnisDesGrauens');
+    var decoded = jwt.verify(call.metadata.getKey('token'), SECRET);
     callback(null, {message: decoded.user});
   } catch(err) {
     callback(null, {message: "authentication failed"});
