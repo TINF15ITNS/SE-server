@@ -5,6 +5,7 @@
   "dependencies": {
     "bunyan": "^1.8.10",
     "grpc": "1.2.0",
+    "js-yaml": "^3.8.4",
     "jsonwebtoken": "^7.4.0",
     "mongodb": "^2.2.26",
     "node-uuid": "^1.4.8"
