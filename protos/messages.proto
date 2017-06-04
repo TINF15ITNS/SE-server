@@ -35,11 +35,12 @@ message UpdatePasswordRequest {
 }
 
 message DeleteProfileRequest {
-
+  string nickname = 1;
+  string password = 2;
 }
 
 message SearchForProfileRequest {
-
+  string query = 1;
 }
 
 message GetProfileDetailsRequest {
@@ -134,11 +135,11 @@ message LoginResponse {
 }
 
 message SearchForProfileResponse {
-
+  bool success = 1;
+  repeated string result = 2;
 }
 
 message GetProfileDetailsResponse {
-
 }
 
 message CreateGroupResponse {

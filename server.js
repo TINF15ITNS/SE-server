@@ -150,11 +150,29 @@ function updatePassword(call, callback) {
 }
 
 function deleteProfile(call, callback) {
+	var userdata = call.request;
+	var res = db.collection('users').find({nickname: userdata.get('nickname')});
+	if(res.count() == 0) {
+		callback(null, {success: false});
+	}
+	else {
+		db.collection('users').deleteOne({nickname: userdata.get('nickname')});
+		//TODO: Nach Todolisten, etc suchen die mit dem account verbunden sind und ebenfalls löschen!
+		callback(null, {success: true});
+	}
 
 }
 
 function searchForProfile(call, callback) {
-
+  var data = call.request.get('query');
+  var foundProfiles = db.collection('users').find({ $or: [ { nickname: data }, { name: data }, { surname: data } ] }, {nickname: 1, _id:0})
+  
+  if(foundProfiles.length == 0){
+	  callback(null, {success: false, result: null});
+  }
+  else{
+	  callback(null, {success: true, result: foundProfiles});
+  }
 }
 
 function getProfileDetails(call, callback) {
