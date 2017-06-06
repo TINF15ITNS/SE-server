@@ -285,6 +285,7 @@ function updatePassword(call, callback) {
   })
 }
 
+//TODO: Nach Todolisten, etc suchen die mit dem account verbunden sind und ebenfalls löschen!
 function deleteUser(call, callback) {
   var metadata = call.metadata
   var req = call.request
@@ -315,13 +316,29 @@ function deleteUser(call, callback) {
 }
 
 function searchUser(call, callback) {
-
+  var metadata = call.metadata
+  var req = call.request
+  loginWithToken(metadata, (err, nickname) => {
+    if(err != null) {
+      log.info("call with insufficient credentials")
+      return callback(null, {success: false})
+    } else {
+      var data = call.request.get('query');
+      var foundProfiles = db.collection('users').find({ $or: [ { nickname: data }, { name: data }, { surname: data }, { telNumber: data } ] }, {nickname: 1, _id:0}).toArray();
+      
+      if(foundProfiles.length == 0){
+        return callback(null, {success: false, result: null});
+      }
+      else{
+        return callback(null, {success: true, result: foundProfiles});
+      }
+    }
+  })
 }
 
 function getUserDetails(call, callback) {
 
 }
-
 
 // Objects
 // =======
