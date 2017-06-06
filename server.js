@@ -1,4 +1,4 @@
-var jwt = require('jsonwebtoken')
+﻿var jwt = require('jsonwebtoken')
   , uuidv4 = require('node-uuid')
   , grpc = require('grpc')
   , MongoClient = require('mongodb').MongoClient
@@ -165,7 +165,7 @@ function deleteProfile(call, callback) {
 
 function searchForProfile(call, callback) {
   var data = call.request.get('query');
-  var foundProfiles = db.collection('users').find({ $or: [ { nickname: data }, { name: data }, { surname: data } ] }, {nickname: 1, _id:0})
+  var foundProfiles = db.collection('users').find({ $or: [ { nickname: data }, { name: data }, { surname: data }, { telNumber: data } ] }, {nickname: 1, _id:0}).toArray();
   
   if(foundProfiles.length == 0){
 	  callback(null, {success: false, result: null});
