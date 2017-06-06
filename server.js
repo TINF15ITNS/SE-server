@@ -31,9 +31,9 @@ server.addProtoService(apiProto.ServerService.service, {
   login: login,
   updateProfile: updateProfile,
   updatePassword: updatePassword,
-  deleteProfile: deleteProfile,
-  searchForProfile: searchForProfile,
-  getProfileDetails: getProfileDetails
+  deleteUser: deleteUser,
+  searchUser: searchUser,
+  getUserDetails: getUserDetails
 })
 server.bind(config.grpc.uri, grpc.ServerCredentials.createInsecure())
 server.start()
@@ -45,58 +45,72 @@ log.info({uri: config.grpc.uri}, 'Started gRPC server')
 function insertUser(user, callback) {
   log.info({user : user}, 'inserting user in db')
   if(user != null) {
-    db.collection('users').insertOne(newUser, (err, r) => {
-      callback(err, r.insertedCount == 1 && r.result.ok == 1)
+    db.collection('users').insertOne(user, (err, r) => {
+      return callback(err, r.insertedCount == 1 && r.result.ok == 1)
     })
   } else {
-    callback(new Error('EmptyArgument'), false)
+    return callback(new Error('EmptyArgument'), false)
   }
 }
 
 function searchForUser(nickname, callback) {
   log.info({nickname: nickname}, 'looking for user in db')
-  db.collection('users').find({nickname: nickname}).count().then( res => {
-    if(res == 0) {
+  db.collection('users').find({nickname: nickname}).count((err, count) => {
+    if(err != null) {
+    log.error({error: err}, 'Error Searching db')
+    return callback(err, null)
+    }
+    else if(count == 0) {
       log.info({nickname: nickname}, 'no user found in db')
-      callback(null, false)
+      return callback(null, false)
     } else {
       log.info({nickname: nickname}, 'found a user in db')
-      callback(null, true)
+      return callback(null, true)
     }
   })
 }
 
 function getUser(nickname, callback) {
   log.info({nickname: nickname}, 'getting user from db')
-  db.collection('users').find({nickname: nickname}).toArray().then( docs => {
+  db.collection('users').find({nickname: nickname}).toArray((err, docs) => {
+    if(err != null) {
+      return callback(err, null)
+    }
     if(docs.length != 1) {
-      callback(null, null)
+      return callback(null, null)
     } else {
-      callback(null, docs[0])
+      return callback(null, docs[0])
     }
   })
-}
-
-
-function generateToken(nickname) {
-  return jwt.sign({nickname: nickname}, SECRET)
 }
 
 // extracts the token from metadata, verifies the correct signature
 // the callback takes a verified existing nickname as second argument,
 // if none was found an error is returned as first argument
 function loginWithToken(metadata, callback) {
-  return callback(null, 'fabi')
-  //try {
-    //console.log('Log', metadata.get('token')[0]);
+  //return callback(null, 'fabi')
+  jwt.verify(call.metadata.getKey('token'), SECRET, (err, decoded) => {
+    if(err != null) {
+      return callback(new Error('Authentication Error'), null)
+    }
+    nickname = decoded.nickname
+    issued_at = decoded.iat
+    if(!validNickname(nickname)) {
+      return callback(new Error('Authentication Error'), null)
+    } else {
+      getUser(nickname, (err, user) => {
+        if(err != null || user == null) {
+          return callback(new Error('AuthenticationError'), null)
+        }
+        else if(user.token.issued_at != issued_at) {
+          return callback(new Error('AuthenticationError'), null)
+        } else {
+          return callback(null, nickname)
+        }
+      }) 
+    }
+  })
     //var decoded = jwt.verify(metadata.get('token')[0], SECRET);
-    //console.log('Log', decoded);
-
-    //var decoded = jwt.verify(call.metadata.getKey('token'), SECRET);
-    //callback(null, {message: decoded.user});
-  //} catch(err) {
-    //callback(null, {message: "authentication failed"});
-  //}
 }
 
 // Password Hashing
@@ -153,12 +167,17 @@ function register(call,callback) {
     searchForUser(req.nickname, (err, nicknameExists) => {
       if(!nicknameExists && err == null) {
         log.info('Registration is possible')
-        newUser = new User(req.nickname, req.password)
-        insertUser(newUser, (err, success) => {
+        new_user = new User(req.nickname, req.password)
+        new_issued_at = Date.now()
+        new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
+        new_user.token = {}
+        new_user.token.issued_at = new_issued_at
+        console.log(new_user)
+        insertUser(new_user, (err, success) => {
           if(err != null) {
             return callback(null, {success: false})
           } else {
-            callback(null, {success: success, token: generateToken(newUser.nickname)})
+            callback(null, {success: success, token: new_token})
           }
         })
       } else {
@@ -174,19 +193,30 @@ function login(call, callback) {
   var req = call.request
   log.info({payload: req}, 'New login attempt')
   if(validNickname(req.nickname) && validPassword(req.password)) {
-    getUser(req.nickname, (err, storedUser) => {
+    getUser(req.nickname, (err, stored_user) => {
       if(err != null) {
+        log.info('Login not successfull')
         return callback(null, {success: false})
       }
-      else if(storedUser != null && validatePassword(storedUser.hash, storedUser.salt, storedUser.iterations, req.password)) {
-        log.info('Login successfull')
-        return callback(null, {success: true, token: generateToken(req.nickname)})
+      else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
+        new_issued_at = Date.now()
+        new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
+        db.collection('users').updateOne({nickname: req.nickname}, {$set: {token: {issued_at: new_issued_at}}}, (err, r) => {
+          if(err != null) {
+            log.info('Login not successfull')
+            return callback(null, {success : false})
+          } else {
+            log.info('Login successfull')
+            return callback(null, {success: true, token: new_token})
+          }
+        })
       } else {
         log.info('Login not successfull')
         return callback(null, {success: false})
       }
     })
   } else {
+    log.info('Login not successfull')
     return callback(null, {success: false})
   }
 }
@@ -234,12 +264,12 @@ function updatePassword(call, callback) {
       log.info("call with insufficient credentials")
       return callback(null, {success: false})
     }
-    if(validPassword(req.old_password) && validPassword(req.new_password)) {
-      getUser(nickname, (err, storedUser) => {
+    else if(validPassword(req.old_password) && validPassword(req.new_password)) {
+      getUser(nickname, (err, stored_user) => {
         if(err != null) {
           return callback(null, {success: false})
         }
-        else if(storedUser != null && validatePassword(storedUser.hash, storedUser.salt, storedUser.iterations, req.old_password)) {
+        else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.old_password)) {
           db.collection('users').updateOne({nickname: nickname}, {$set: {password: new_password}}, (err, r) => {
             if(err != null) {
               return callback(null, {success: false})
@@ -255,7 +285,7 @@ function updatePassword(call, callback) {
   })
 }
 
-function deleteProfile(call, callback) {
+function deleteUser(call, callback) {
   var metadata = call.metadata
   var req = call.request
   loginWithToken(metadata, (err, nickname) => {
@@ -264,11 +294,11 @@ function deleteProfile(call, callback) {
       return callback(null, {success: false})
     }
     if(validPassword(req.password)) {
-      getUser(nickname, (err, storedUser) => {
+      getUser(nickname, (err, stored_user) => {
         if(err != null) {
           return callback(null, {success: false})
         }
-        else if(storedUser != null && validatePassword(storedUser.hash, storedUser.salt, storedUser.iterations, req.password)) {
+        else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
           db.collection('users').deleteOne({nickname: nickname}, (err, r) => {
             if(err != null) {
               return callback(null, {success: false})
@@ -284,11 +314,11 @@ function deleteProfile(call, callback) {
   })
 }
 
-function searchForProfile(call, callback) {
+function searchUser(call, callback) {
 
 }
 
-function getProfileDetails(call, callback) {
+function getUserDetails(call, callback) {
 
 }
 
@@ -297,8 +327,5 @@ function getProfileDetails(call, callback) {
 // =======
 function User(nickname, password) {
   this.nickname = nickname
-  passwordData = hashPassword(password)
-  this.hash = passwordData.hash
-  this.salt = passwordData.salt
-  this.iterations = passwordData.iterations
+  this.password = hashPassword(password)
 }

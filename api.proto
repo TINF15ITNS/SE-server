@@ -13,39 +13,39 @@ service ServerService {
   rpc Login	          (LoginRequest) returns (LoginResponse) {}
   rpc UpdateProfile   (UpdateProfileRequest) returns (Response) {}
   rpc UpdatePassword  (UpdatePasswordRequest) returns (Response) {}
-  rpc DeleteProfile   (DeleteProfileRequest) returns (Response) {}
+  rpc DeleteUser      (DeleteUserRequest) returns (Response) {}
 
   // Network
-  rpc SearchForProfile            (SearchForProfileRequest) returns (SearchForProfileResponse) {}
-  rpc GetProfileDetails           (GetProfileDetailsRequest) returns (GetProfileDetailsResponse) {}
-// rpc CreateGroup                 (CreateGroupRequest) returns (CreateGroupResponse) {}
-// rpc AddUserToGroup              (AddUserToGroupRequest) returns (Response) {} //? AddUser or AddFriend or AddToGroup
-// rpc GetFriendList               (GetFriendListRequest) returns (GetFriendListResponse) {}
-// rpc AddFriendToFriendList       (AddFriendRequest) returns (Response) {}
-// rpc RemoveFriendFromFriendList  (RemoveFriendRequest) returns (Response) {}
-// 
-// // Todo-list
-// rpc CreateTodoList      (CreateTodoListRequest) returns (CreateTodoListResponse) {}
-// rpc GetTodoListsForUser (GetTodoListsForUserRequest) returns (GetTodoListsForUserResponse) {}
-// rpc GetTodoList         (GetTodoListRequest) returns (GetTodoListResponse) {}
-// rpc ShareTodoList       (ShareTodoListRequest) returns (Response) {}
-// rpc UpdateTodoListEntry (UpdateTodoListEntryRequest) returns (Response) {}
-//
-// // Calendar
-// rpc ShareCalendarEntry (ShareCalendarEntryRequest) returns (Response) {}
-// 
-// // Debts
-// rpc GetDebts    (GetDebtsRequest) returns (GetDebtsResponse) {}
-// rpc CreateDebt  (CreateDebtRequest) returns (Response) {}
-// rpc ConfirmDebt (ConfirmDebtRequest) returns (Response) {}
-// rpc UpdateDebt  (UpdateDebtRequest) returns (Response) {}
-//
-//
-// // Location
-// rpc UpdateLocation        (UpdateLocationRequest) returns (Response) {}
-// rpc ShareLocation         (ShareLocationRequest) returns (Response) {}
-// rpc GetSharedLocations    (GetSharedLocationsRequest) returns (GetSharedLocationsResponse) {}
-// rpc StartDriveByReminder  (StartDriveByReminderRequest) returns (Response) {}
+  rpc SearchUser                  (SearchUserRequest) returns (SearchUserResponse) {}
+  rpc GetUserDetails              (GetUserDetailsRequest) returns (GetUserDetailsResponse) {}
+  rpc CreateGroup                 (CreateGroupRequest) returns (CreateGroupResponse) {}
+  rpc AddUserToGroup              (AddUserToGroupRequest) returns (Response) {} //? AddUser or AddFriendToFriendlist or AddToGroup
+  rpc GetFriendList               (GetFriendListRequest) returns (GetFriendListResponse) {}
+  rpc AddFriendToFriendlist       (AddFriendToFriendlistRequest) returns (Response) {}
+  rpc RemoveFriendFromFriendlist  (RemoveFriendFromFriendlistRequest) returns (Response) {}
+  
+  // Todo-list
+  rpc CreateTodoList      (CreateTodoListRequest) returns (CreateTodoListResponse) {}
+  rpc GetTodoListsForUser (GetTodoListsForUserRequest) returns (GetTodoListsForUserResponse) {}
+  rpc GetTodoList         (GetTodoListRequest) returns (GetTodoListResponse) {}
+  rpc ShareTodoList       (ShareTodoListRequest) returns (Response) {}
+  rpc UpdateTodoListEntry (UpdateTodoListEntryRequest) returns (Response) {}
+
+  // Calendar
+  rpc ShareCalendarEntry (ShareCalendarEntryRequest) returns (Response) {}
+  
+  // Debts
+  rpc GetDebts    (GetDebtsRequest) returns (GetDebtsResponse) {}
+  rpc CreateDebt  (CreateDebtRequest) returns (Response) {}
+  rpc ConfirmDebt (ConfirmDebtRequest) returns (Response) {}
+  rpc UpdateDebt  (UpdateDebtRequest) returns (Response) {}
+
+
+  // Location
+  rpc UpdateLocation        (UpdateLocationRequest) returns (Response) {}
+  rpc ShareLocation         (ShareLocationRequest) returns (Response) {}
+  rpc GetSharedLocations    (GetSharedLocationsRequest) returns (GetSharedLocationsResponse) {}
+  rpc StartDriveByReminder  (StartDriveByReminderRequest) returns (Response) {}
 }
 
 // Request messages
@@ -73,18 +73,16 @@ message UpdatePasswordRequest {
   string new_password = 2;
 }
 
-message DeleteProfileRequest { // DeleteUserRequest in class-diagram?
+message DeleteUserRequest {
   string password = 1;
 }
 
-message SearchForProfileRequest { // SearchUserRequest in class-diagram?
-  string nickname = 1;
-  string phone = 2;
+message SearchUserRequest {
+  string query = 1;
 }
 
-message GetProfileDetailsRequest { // GetUserDetailsRequest in class-diagram?
-  string userUUID = 1;
-  string key = 2;
+message GetUserDetailsRequest {
+  string user_nickname = 1;
 }
 
 message CreateGroupRequest {
@@ -93,19 +91,19 @@ message CreateGroupRequest {
 }
 
 message AddUserToGroupRequest {
-  string userUUID = 1;
-  int32 groupId = 2;
+  string user_nickname = 1;
+  int32 group_id = 2;
 }
 
 message GetFriendListRequest {
-
+  //Empty
 }
 
-message AddFriendRequest { // AddFriendToFriendlistRequest in class-diagram?
-  string friendNickname = 1;
+message AddFriendToFriendlistRequest {
+  string friend_nickname = 1;
 }
 
-message RemoveFriendRequest { // RemoveFriendToFriendlistRequest in class-diagram?
+message RemoveFriendFromFriendlistRequest {
   string nickname = 1;
 }
 
@@ -114,69 +112,70 @@ message CreateTodoListRequest {
 }
 
 message GetTodoListsForUserRequest {
-
+  //Empty
 }
 
 message GetTodoListRequest {
-  int32 todoListId = 1;
+  int32 todo_list_id = 1;
 }
 
 message ShareTodoListRequest {
-  int32 groupId = 1;
-  int32 todoListId = 2;
+  int32 group_id = 1;
+  int32 todo_list_id = 2;
 }
 
 message UpdateTodoListEntryRequest {
   string content = 1;
   bool completed = 2;
-  int32 todoListEntryId = 3;
+  int32 todo_list_entry_id = 3;
 }
 
-message ShareCalendarEntryRequest { // Datatype and implementation?
-
+message ShareCalendarEntryRequest {
+  string creator_nickname = 1;
+  int32 group_id = 2;
+  bytes entry_data = 3;
 }
 
 message GetDebtsRequest {
-
+  //Empty
 }
 
 message CreateDebtRequest {
-  int32 debtId = 1; // Assigned by the server an therefore unknown at this point?
-//  Timestamp returnDate = 2;
-  int32 amount = 3; // double?
-//  Timestamp dateOfLoan = 4;
-  bool outstanding = 5;
+  string return_date = 1;
+  double amount = 2;
+  string date_of_loan = 3;
+  bool outstanding = 4;
 }
 
 message ConfirmDebtRequest {
-  int32 debtId = 1;
+  int32 debt_id = 1;
   bool confirmed = 2;
 }
 
 message UpdateDebtRequest {
-  int32 debtId = 1;
-//  Timestamp newReturnDate = 2;
-  int32 newAmount = 3; // double?
-//  Timestamp newDateOfLoan = 4;
-  string newCreditorUUID = 5;
-  bool newOutstanding = 6;
+  int32 debt_id = 1;
+  string new_return_date = 2;
+  double new_amount = 3;
+  string new_date_of_loan = 4;
+  string new_creditor_nickname = 5;
+  bool new_outstanding = 6;
 }
 
 message UpdateLocationRequest {
-//  Location location = 1;
+  Location location = 1;
 }
 
 message ShareLocationRequest {
-  int32 groupId = 1;
-//  Location location = 2;
+  int32 group_id = 1;
+  Location location = 2;
 }
 
 message GetSharedLocationsRequest {
-
+  //Empty
 }
 
 message StartDriveByReminderRequest {
-  string destinationUserNickname = 1;
+  string destination_user_nickname = 1;
 }
 
 // Response messages
@@ -190,40 +189,80 @@ message LoginResponse {
   string token = 2;
 }
 
-message SearchForProfileResponse { // SearchUser in class-diagram?
-  repeated string uuidResult = 1;
+message SearchUserResponse {
+  repeated string nickname_result = 1;
 }
 
-message GetProfileDetailsResponse { // GetUserDetails in class-diagram?
-  string userDetails = 1;
+message GetUserDetailsResponse {
+  string name = 1;
+  string surname = 2;
+  string birthday = 3;
+  string phone = 4;
+  string email = 5;
 }
 
 message CreateGroupResponse {
-  int32 groupId = 1;
+  int32 group_id = 1;
 }
 
 message GetFriendListResponse {
-  repeated string friendList = 1;
+  repeated string friend_list = 1;
 }
 
-message CreateTodoListResponse { // Can it return a TodoList?
-
+message CreateTodoListResponse {
+  int32 todo_list_id = 1;
 }
 
-message GetTodoListsForUserResponse { // Can it return a  TodoList?
-
+message GetTodoListsForUserResponse {
+  repeated TodoList todo_lists = 1;
 }
 
-message GetTodoListResponse { // Can it return a  TodoList?
-
+message GetTodoListResponse {
+  TodoList todo_list = 1;
 }
 
-message GetDebtsResponse { // Can it return a  DebtList?
-
+message GetDebtsResponse {
+  DebtList debt_list = 1;
 }
 
-message GetSharedLocationsResponse { // Can it return a UserLoacation?
-
+message GetSharedLocationsResponse {
+  repeated UserLocation location_list = 1;
 }
 
 // Nested messages
+message Location {
+  float latitude = 1;
+  float longitude = 2;
+  string timestamp = 3;
+}
+
+message UserLocation {
+  string user_nickname = 1;
+  Location location = 2;
+}
+
+message TodoList {
+  int32 todo_list_id = 1;
+  string name = 2;
+  string creator_nickname = 3;
+  repeated TodoListEntry entries = 4;
+}
+
+message TodoListEntry {
+  string content = 1;
+  bool completed = 2;
+}
+
+message DebtList { 
+  repeated Debt debt_list = 1;
+}
+
+message Debt {
+  int32 debt_id = 1;
+  string return_date = 2;
+  double amount = 3;
+  string debtor_nickname = 4;
+  string date_of_loan = 5;
+  string creditor_nickname = 6;
+  bool outstanding = 7;
+}
