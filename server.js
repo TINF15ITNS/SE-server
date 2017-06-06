@@ -134,24 +134,29 @@ function validatePassword(savedHash, savedSalt, savedIterations, passwordAttempt
 // ================
 
 function validNickname(nickname) {
-  return nickname
+  var re = /^\w*$/; //any length is allowed but only letters and numbers
+  return re.test(nickname);
 }
 
 function validPassword(password) {
-  return password
+  var re = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/; //length >= 6, one capital letter, one lowercase letter and one number
+  return re.test(password);
 }
 
 function validName(name) {
-  return name
+  var re = /^[a-zA-Z'- ]+$/; //Letters, [-], ['] and [ ]
+  return re.test(name);
 }
 function validSurname(surname) {
-  return surname
+  var re = /^[a-zA-Z'- ]+$/; //Letters, [-], ['] and [ ]
+  return re.test(surname);
 }
 function validBirthday(birthday) {
-  return birthday
+  return Date.parse(birthday) < Date.now(); //Born before this moment?
 }
 function validPhone(phone) {
-  return phone
+  var re = /^[0-9]*$/; //only numbers
+  return re.test(phone);
 }
 function validEmail(email) {
   //E-Mail validation according to the HTML5 spec: https://www.w3.org/TR/html5/forms.html#valid-e-mail-address
