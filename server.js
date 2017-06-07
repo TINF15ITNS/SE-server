@@ -134,21 +134,21 @@ function validatePassword(savedHash, savedSalt, savedIterations, passwordAttempt
 // ================
 
 function validNickname(nickname) {
-  var re = /^\w*$/; //any length is allowed but only letters and numbers
+  var re = /^\w{1,}$/; //any length is allowed but only letters and numbers
   return re.test(nickname);
 }
 
 function validPassword(password) {
-  var re = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/; //length >= 6, one capital letter, one lowercase letter and one number
+  var re = /.{6,}/; //length >= 6
   return re.test(password);
 }
 
 function validName(name) {
-  var re = /^[a-zA-Z'- ]+$/; //Letters, [-], ['] and [ ]
+  var re = /^[a-zA-Z\u00C0-\u017F'\- ]+$/; //Letters, [-], ['], [ ] and accented characters
   return re.test(name);
 }
 function validSurname(surname) {
-  var re = /^[a-zA-Z'- ]+$/; //Letters, [-], ['] and [ ]
+  var re = /^[a-zA-Z\u00C0-\u017F'\- ]+$/; //Letters, [-], ['], [ ] and accented characters
   return re.test(surname);
 }
 function validBirthday(birthday) {
