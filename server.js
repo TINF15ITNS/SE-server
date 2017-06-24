@@ -56,7 +56,7 @@ function searchForUser(nickname, callback) {
   log.info({nickname: nickname}, 'looking for user in db')
   db.collection('users').find({nickname: nickname}).count((err, count) => {
     if(err != null) {
-    log.error({error: err}, 'Error Searching db')
+    log.error({err: err}, 'Error Searching db')
     return callback(err, null)
     }
     else if(count == 0) {
@@ -87,20 +87,25 @@ function getUser(nickname, callback) {
 // the callback takes a verified existing nickname as second argument,
 // if none was found an error is returned as first argument
 function loginWithToken(metadata, callback) {
+  log.info({token:metadatat.get('token')}, "testing the token")
   jwt.verify(metadata.get('token'), SECRET, (err, decoded) => {
     if(err != null) {
+      log.error({err:err}, 'An error ocurred while verifying')
       return callback(new Error('Authentication Error'), null)
     }
     nickname = decoded.nickname
     issued_at = decoded.iat
     if(!validNickname(nickname)) {
+      log.info({nickname:nickname},'no valid nickname')
       return callback(new Error('Authentication Error'), null)
     } else {
       getUser(nickname, (err, user) => {
         if(err != null || user == null) {
+          log.error({err:err}, 'user not found in database')
           return callback(new Error('AuthenticationError'), null)
         }
         else if(user.token.issued_at != issued_at) {
+          log.info('issued_at mismatch, not the most recent token')
           return callback(new Error('AuthenticationError'), null)
         } else {
           log.info({nickname: nickname}, 'call authentication successfull')
