@@ -351,6 +351,7 @@ function searchUser(call, callback) {
                 return callback(null, {success: false});
               } else{
                 profiles = profiles.map(elem => elem.nickname)
+                log.info({profiles: profiles}, 'converted to right array')
                 return callback(null, {success: true, nickname_result: profiles});
               }
             }
