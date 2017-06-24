@@ -337,16 +337,20 @@ function searchUser(call, callback) {
     } else {
       log.info("Search User")
       var query = req.query
-      var foundProfiles = db.collection('users').find({ $or: [ { nickname: query }, { name: query }, { surname: query }, { telNumber: query } ] }, {nickname: 1, _id:0}).toArray();
-      
-      if(foundProfiles.length == 0){
-        log.info('no profiles found')
-        return callback(null, {success: false, result: null});
-      }
-      else{
-        log.info({foundProfiles: foundProfiles}, "found profiles")
-        return callback(null, {success: true, result: foundProfiles});
-      }
+      db.collection('users').find({ $or: [ { nickname: query }, { name: query }, { surname: query }, { telNumber: query } ] }, {nickname: 1, _id:0}, (err, res) => {
+        if(err != null) {
+          return callback(null, {success: false})
+        } else {
+          profiles = res.toArray()
+          log.info({profiles:profiles},'foundProfiles')
+          if(profiles.length == 0){
+            log.info('no profiles found')
+            return callback(null, {success: false, result: null});
+          } else{
+            return callback(null, {success: true, result: profiles});
+          }
+        }
+      })
     }
   })
 }
