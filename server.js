@@ -88,8 +88,7 @@ function getUser(nickname, callback) {
 // the callback takes a verified existing nickname as second argument,
 // if none was found an error is returned as first argument
 function loginWithToken(metadata, callback) {
-  //return callback(null, 'fabi')
-  jwt.verify(call.metadata.getKey('token'), SECRET, (err, decoded) => {
+  jwt.verify(metadata.get('token'), SECRET, (err, decoded) => {
     if(err != null) {
       return callback(new Error('Authentication Error'), null)
     }
@@ -110,7 +109,6 @@ function loginWithToken(metadata, callback) {
       }) 
     }
   })
-    //var decoded = jwt.verify(metadata.get('token')[0], SECRET);
 }
 
 // Password Hashing
@@ -341,10 +339,6 @@ function searchUser(call, callback) {
       }
     }
   })
-}
-
-function getUserDetails(call, callback) {
-
 }
 
 // Objects
