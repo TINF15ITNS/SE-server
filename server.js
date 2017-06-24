@@ -341,6 +341,7 @@ function searchUser(call, callback) {
         if(err != null) {
           return callback(null, {success: false})
         } else {
+          log.info({res: res}, 'full response')
           profiles = res.toArray()
           log.info({profiles:profiles},'foundProfiles')
           if(profiles.length == 0){
