@@ -1,0 +1,278 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.serverPackage";
+option java_outer_classname = "ServerProto";
+option objc_class_prefix = "HLW";
+
+package serverPackage;
+
+service ServerService {
+  // Profile Interactions
+  rpc Register        (RegisterRequest) returns (LoginResponse) {}
+  rpc Login	          (LoginRequest) returns (LoginResponse) {}
+  rpc UpdateProfile   (UpdateProfileRequest) returns (Response) {}
+  rpc UpdatePassword  (UpdatePasswordRequest) returns (Response) {}
+  rpc DeleteUser      (DeleteUserRequest) returns (Response) {}
+
+  // Network
+  rpc SearchUser                  (SearchUserRequest) returns (SearchUserResponse) {}
+  rpc GetUserDetails              (GetUserDetailsRequest) returns (GetUserDetailsResponse) {}
+  rpc CreateGroup                 (CreateGroupRequest) returns (CreateGroupResponse) {}
+  rpc AddUserToGroup              (AddUserToGroupRequest) returns (Response) {} //? AddUser or AddFriendToFriendlist or AddToGroup
+  rpc GetFriendList               (GetFriendListRequest) returns (GetFriendListResponse) {}
+  rpc AddFriendToFriendlist       (AddFriendToFriendlistRequest) returns (Response) {}
+  rpc RemoveFriendFromFriendlist  (RemoveFriendFromFriendlistRequest) returns (Response) {}
+  
+  // Todo-list
+  rpc CreateTodoList		(CreateTodoListRequest) returns (CreateTodoListResponse) {}
+  rpc CreateTodoListEntry   (CreateTodoListEntryRequest) returns (CreateTodoListEntyResponse) {}
+  rpc GetTodoListsForUser	(GetTodoListsForUserRequest) returns (GetTodoListsForUserResponse) {}
+  rpc GetTodoList			(GetTodoListRequest) returns (GetTodoListResponse) {}
+  rpc ShareTodoList			(ShareTodoListRequest) returns (Response) {}
+  rpc UpdateTodoListEntry	(UpdateTodoListEntryRequest) returns (Response) {}
+
+  // Calendar
+  rpc ShareCalendarEntry (ShareCalendarEntryRequest) returns (Response) {}
+  
+  // Debts
+  rpc GetDebts    (GetDebtsRequest) returns (GetDebtsResponse) {}
+  rpc CreateDebt  (CreateDebtRequest) returns (Response) {}
+  rpc ConfirmDebt (ConfirmDebtRequest) returns (Response) {}
+  rpc UpdateDebt  (UpdateDebtRequest) returns (Response) {}
+
+
+  // Location
+  rpc UpdateLocation        (UpdateLocationRequest) returns (Response) {}
+  rpc ShareLocation         (ShareLocationRequest) returns (Response) {}
+  rpc GetSharedLocations    (GetSharedLocationsRequest) returns (GetSharedLocationsResponse) {}
+  rpc StartDriveByReminder  (StartDriveByReminderRequest) returns (Response) {}
+}
+
+// Request messages
+message RegisterRequest {
+  string nickname = 1;
+  string password = 2;
+}
+
+message LoginRequest {
+  string nickname = 1;
+  string password = 2;
+}
+
+message UpdateProfileRequest {
+  string name = 1;
+  string surname = 2;
+  string birthday = 3;
+  string phone = 4;
+  string email = 5;
+  //bool share_location = 6;
+}
+
+message UpdatePasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
+}
+
+message DeleteUserRequest {
+  string password = 1;
+}
+
+message SearchUserRequest {
+  string query = 1;
+}
+
+message GetUserDetailsRequest {
+  string user_nickname = 1;
+}
+
+message CreateGroupRequest {
+  string title = 1;
+  bytes image = 2; // Datatype for Image?
+}
+
+message AddUserToGroupRequest {
+  string user_nickname = 1;
+  int32 group_id = 2;
+}
+
+message GetFriendListRequest {
+  //Empty
+}
+
+message AddFriendToFriendlistRequest {
+  string friend_nickname = 1;
+}
+
+message RemoveFriendFromFriendlistRequest {
+  string nickname = 1;
+}
+
+message CreateTodoListRequest {
+  string name = 1;
+}
+
+message CreateTodoListEntryRequest {
+	int32 todo_list_id = 1;
+	string entry = 2;
+}
+
+message GetTodoListsForUserRequest {
+  //Empty
+}
+
+message GetTodoListRequest {
+  int32 todo_list_id = 1;
+}
+
+message ShareTodoListRequest {
+  int32 group_id = 1;
+  int32 todo_list_id = 2;
+}
+
+message UpdateTodoListEntryRequest {
+  string content = 1;
+  bool completed = 2;
+  int32 todo_list_entry_id = 3;
+}
+
+message ShareCalendarEntryRequest {
+  string creator_nickname = 1;
+  int32 group_id = 2;
+  bytes entry_data = 3;
+}
+
+message GetDebtsRequest {
+  //Empty
+}
+
+message CreateDebtRequest {
+  string return_date = 1;
+  double amount = 2;
+  string date_of_loan = 3;
+  bool outstanding = 4;
+}
+
+message ConfirmDebtRequest {
+  int32 debt_id = 1;
+  bool confirmed = 2;
+}
+
+message UpdateDebtRequest {
+  int32 debt_id = 1;
+  string new_return_date = 2;
+  double new_amount = 3;
+  string new_date_of_loan = 4;
+  string new_creditor_nickname = 5;
+  bool new_outstanding = 6;
+}
+
+message UpdateLocationRequest {
+  Location location = 1;
+}
+
+message ShareLocationRequest {
+  int32 group_id = 1;
+  Location location = 2;
+}
+
+message GetSharedLocationsRequest {
+  //Empty
+}
+
+message StartDriveByReminderRequest {
+  string destination_user_nickname = 1;
+}
+
+// Response messages
+
+message Response {
+  bool success = 1;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string token = 2;
+}
+
+message SearchUserResponse {
+  repeated string nickname_result = 1;
+}
+
+message GetUserDetailsResponse {
+  string name = 1;
+  string surname = 2;
+  string birthday = 3;
+  string phone = 4;
+  string email = 5;
+}
+
+message CreateGroupResponse {
+  int32 group_id = 1;
+}
+
+message GetFriendListResponse {
+  repeated string friend_list = 1;
+}
+
+message CreateTodoListResponse {
+  int32 todo_list_id = 1;
+}
+
+message CreateTodoListEntyResponse {
+  bool success = 1;
+}
+
+message GetTodoListsForUserResponse {
+  repeated TodoList todo_lists = 1;
+}
+
+message GetTodoListResponse {
+  TodoList todo_list = 1;
+}
+
+message GetDebtsResponse {
+  DebtList debt_list = 1;
+}
+
+message GetSharedLocationsResponse {
+  repeated UserLocation location_list = 1;
+}
+
+// Nested messages
+message Location {
+  float latitude = 1;
+  float longitude = 2;
+  string timestamp = 3;
+}
+
+message UserLocation {
+  string user_nickname = 1;
+  Location location = 2;
+}
+
+message TodoList {
+  int32 todo_list_id = 1;
+  string name = 2;
+  string creator_nickname = 3;
+  repeated TodoListEntry entries = 4;
+}
+
+message TodoListEntry {
+  string content = 1;
+  bool completed = 2;
+}
+
+message DebtList { 
+  repeated Debt debt_list = 1;
+}
+
+message Debt {
+  int32 debt_id = 1;
+  string return_date = 2;
+  double amount = 3;
+  string debtor_nickname = 4;
+  string date_of_loan = 5;
+  string creditor_nickname = 6;
+  bool outstanding = 7;
+}
