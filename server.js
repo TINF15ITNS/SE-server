@@ -104,6 +104,7 @@ function loginWithToken(metadata, callback) {
         else if(user.token.issued_at != issued_at) {
           return callback(new Error('AuthenticationError'), null)
         } else {
+          log.info({nickname: nickname}, 'call authentication successfull')
           return callback(null, nickname)
         }
       }) 
@@ -328,13 +329,16 @@ function searchUser(call, callback) {
       log.info("call with insufficient credentials")
       return callback(null, {success: false})
     } else {
+      log.info("Search User")
       var data = call.request.get('query');
       var foundProfiles = db.collection('users').find({ $or: [ { nickname: data }, { name: data }, { surname: data }, { telNumber: data } ] }, {nickname: 1, _id:0}).toArray();
       
       if(foundProfiles.length == 0){
+        log.info('no profiles found')
         return callback(null, {success: false, result: null});
       }
       else{
+        log.info({foundProfiles: foundProfiles}, "found profiles")
         return callback(null, {success: true, result: foundProfiles});
       }
     }
