@@ -350,6 +350,7 @@ function searchUser(call, callback) {
                 log.info('no profiles found')
                 return callback(null, {success: false});
               } else{
+                profiles.map(elem => elem.nickname)
                 return callback(null, {success: true, nickname_result: profiles});
               }
             }
