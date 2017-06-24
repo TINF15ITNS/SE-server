@@ -87,8 +87,9 @@ function getUser(nickname, callback) {
 // the callback takes a verified existing nickname as second argument,
 // if none was found an error is returned as first argument
 function loginWithToken(metadata, callback) {
-  log.info({token:metadatat.get('token')}, "testing the token")
-  jwt.verify(metadata.get('token'), SECRET, (err, decoded) => {
+  token : metadata.get('token')
+  log.info({token:token)}, "testing the token")
+  jwt.verify(token, SECRET, (err, decoded) => {
     if(err != null) {
       log.error({err:err}, 'An error ocurred while verifying')
       return callback(new Error('Authentication Error'), null)
