@@ -87,7 +87,7 @@ function getUser(nickname, callback) {
 // the callback takes a verified existing nickname as second argument,
 // if none was found an error is returned as first argument
 function loginWithToken(metadata, callback) {
-  var token = metadata.get('token')
+  var token = metadata.get('token').toString()
   log.info({token:token}, 'testing the token')
   jwt.verify(token, SECRET, (err, decoded) => {
     if(err != null) {
@@ -212,7 +212,7 @@ function login(call, callback) {
       else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
         new_issued_at = Date.now()
         new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
-        log.info({token:new_token}, 'token issued')
+        log.info({token:new_token, secret:SECRET}, 'token issued')
         db.collection('users').updateOne({nickname: req.nickname}, {$set: {token: {issued_at: new_issued_at}}}, (err, r) => {
           if(err != null) {
             log.info('Login not successfull')
@@ -336,8 +336,8 @@ function searchUser(call, callback) {
       return callback(null, {success: false})
     } else {
       log.info("Search User")
-      var data = call.request.get('query');
-      var foundProfiles = db.collection('users').find({ $or: [ { nickname: data }, { name: data }, { surname: data }, { telNumber: data } ] }, {nickname: 1, _id:0}).toArray();
+      var query = req.query
+      var foundProfiles = db.collection('users').find({ $or: [ { nickname: query }, { name: query }, { surname: query }, { telNumber: query } ] }, {nickname: 1, _id:0}).toArray();
       
       if(foundProfiles.length == 0){
         log.info('no profiles found')
