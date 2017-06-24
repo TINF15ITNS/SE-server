@@ -212,6 +212,7 @@ function login(call, callback) {
       else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
         new_issued_at = Date.now()
         new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
+        log.info({token:new_token}, 'token issued')
         db.collection('users').updateOne({nickname: req.nickname}, {$set: {token: {issued_at: new_issued_at}}}, (err, r) => {
           if(err != null) {
             log.info('Login not successfull')
