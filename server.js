@@ -341,15 +341,19 @@ function searchUser(call, callback) {
         if(err != null) {
           return callback(null, {success: false})
         } else {
-          log.info({res: res}, 'full response')
-          profiles = res.toArray()
-          log.info({profiles:profiles},'foundProfiles')
-          if(profiles.length == 0){
-            log.info('no profiles found')
-            return callback(null, {success: false, result: null});
-          } else{
-            return callback(null, {success: true, result: profiles});
-          }
+          res.toArray((err, profiles) => {
+            if(err != null) {
+              return callback(null, {success: false})
+            } else {
+              log.info({profiles:profiles},'converted profiles in array')
+              if(profiles.length == 0){
+                log.info('no profiles found')
+                return callback(null, {success: false, result: null});
+              } else{
+                return callback(null, {success: true, result: profiles});
+              }
+            }
+          })
         }
       })
     }
