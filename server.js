@@ -348,7 +348,7 @@ function searchUser(call, callback) {
               log.info({profiles:profiles},'converted profiles in array')
               if(profiles.length == 0){
                 log.info('no profiles found')
-                return callback(null, {success: false, result: null});
+                return callback(null, {success: false});
               } else{
                 return callback(null, {success: true, result: profiles});
               }
