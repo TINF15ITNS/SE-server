@@ -362,6 +362,34 @@ function searchUser(call, callback) {
   })
 }
 
+
+function getUserDetails(call, callback) {
+  var metadata = call.metadata;
+  var req = call.request;
+  loginWithToken(metadata, (err, nickname) => {
+    if (err != null) {
+      log.info("call with insufficient credentials")
+      return callback(null, { success: false })
+    } else if(!validNickname(req.user_nickname)) {
+      log.info({user_nickname: req.user_nickname}, "Invalid nickname was sent")
+    } else{
+      getUser(req.nickname, (err, stored_user) => {
+        if(err != null) {
+        log.error({err:err},"Lookup of user unsuccessfull")
+        return callback(null, { success: false })
+        } else if(stored_user == null) {
+          log.info({nickname: req.nickname}, "no user found")
+          return callback(null, { success: false })
+        } else {
+          log.info({user: stored_user}, "found user, sending details")
+          return callback(null, {name: stored_user.name, surname: stored_user.surname, birthday: stored_user.birthday, phone: stored_user.phone, email: stored_user.email})
+        }
+      })
+    }
+  })
+}
+
+
 // Objects
 // =======
 function User(nickname, password) {
