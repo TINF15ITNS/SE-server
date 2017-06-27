@@ -366,10 +366,17 @@ function searchUser(call, callback) {
 function getUserDetails(call, callback) {
   var metadata = call.metadata;
   var req = call.request;
+  var res = {
+    success: false,
+    name: '',
+    surname: '',
+    birthday: '',
+    phone: '',
+    email: ''
+  }
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
-      return callback(null, { success: false })
     } else if(!validNickname(req.user_nickname)) {
       log.info({user_nickname: req.user_nickname}, "Invalid nickname was sent")
     } else{
@@ -382,24 +389,17 @@ function getUserDetails(call, callback) {
           return callback(null, { success: false })
         } else {
           log.info({user: stored_user}, "found user, sending details")
-          var res = {
-            success: true,
-            name: '',
-            surname: '',
-            birthday: '',
-            phone: '',
-            email: ''
-          }
           if('name' in stored_user) {res.name = stored_user.name}
           if('surname' in stored_user) {res.surname = stored_user.surname}
           if('birthday' in stored_user) {res.birthday = stored_user.birthday}
           if('phone' in stored_user) {res.phone = stored_user.phone}
           if('email' in stored_user) {res.email = stored_user.email}
-          return callback(null, res)
+          res.success = true
         }
       })
     }
   })
+  return callback(null, res)
 }
 
 
