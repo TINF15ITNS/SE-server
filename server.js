@@ -330,29 +330,29 @@ function deleteUser(call, callback) {
 function searchUser(call, callback) {
   var metadata = call.metadata
   var req = call.request
+  var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
-      return callback(null, {success: false})
     } else {
       log.info("Search User")
       var query = req.query
-      db.collection('users').find({ $or: [ { nickname: query }, { name: query }, { surname: query }, { telNumber: query } ] }, {nickname: 1, _id:0}, (err, res) => {
+      db.collection('users').find({ $or: [ { nickname: query }, { name: query }, { surname: query }, { telNumber: query } ] }, {nickname: 1, _id:0}, (err, data) => {
         if(err != null) {
-          return callback(null, {success: false})
+          log.error({err:err}, 'Error while querying DB')
         } else {
-          res.toArray((err, profiles) => {
+          data.toArray((err, profiles) => {
             if(err != null) {
-              return callback(null, {success: false})
+              log.error({err:err}, 'Error while converting data.toArray')
             } else {
               log.info({profiles:profiles},'converted profiles in array')
               if(profiles.length == 0){
                 log.info('no profiles found')
-                return callback(null, {success: false});
               } else{
                 profiles = profiles.map(elem => elem.nickname)
                 log.info({profiles: profiles}, 'converted to right array')
-                return callback(null, {success: true, nickname_result: profiles});
+                res.nickname_result = profiles
+                res.success = true
               }
             }
           })
@@ -360,20 +360,15 @@ function searchUser(call, callback) {
       })
     }
   })
+  log.info({response:res}, 'callback')
+  callback(null, res)
 }
 
 
 function getUserDetails(call, callback) {
   var metadata = call.metadata;
   var req = call.request;
-  var res = {
-    success: false,
-    name: '',
-    surname: '',
-    birthday: '',
-    phone: '',
-    email: ''
-  }
+  var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
