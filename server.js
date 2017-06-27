@@ -375,14 +375,27 @@ function getUserDetails(call, callback) {
     } else{
       getUser(req.nickname, (err, stored_user) => {
         if(err != null) {
-        log.error({err:err},"Lookup of user unsuccessfull")
+        log.error({err: err},"Lookup of user unsuccessfull")
         return callback(null, { success: false })
         } else if(stored_user == null) {
           log.info({nickname: req.nickname}, "no user found")
           return callback(null, { success: false })
         } else {
           log.info({user: stored_user}, "found user, sending details")
-          return callback(null, {name: stored_user.name, surname: stored_user.surname, birthday: stored_user.birthday, phone: stored_user.phone, email: stored_user.email})
+          var res = {
+            success: true,
+            name: '',
+            surname: '',
+            birthday: '',
+            phone: '',
+            email: ''
+          }
+          if(name in stored_user) {res.name = stored_user.name}
+          if(surname in stored_user) {res.surname = stored_user.surname}
+          if(birthday in stored_user) {res.birthday = stored_user.birthday}
+          if(phone in stored_user) {res.phone = stored_user.phone}
+          if(email in stored_user) {res.email = stored_user.email}
+          return callback(null, res)
         }
       })
     }
