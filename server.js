@@ -301,30 +301,28 @@ function updatePassword(call, callback) {
 function deleteUser(call, callback) {
   var metadata = call.metadata
   var req = call.request
+  var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
-      return callback(null, {success: false})
     }
     if(validPassword(req.password)) {
       getUser(nickname, (err, stored_user) => {
         if(err != null) {
-          return callback(null, {success: false})
-        }
-        else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
+          log.error({err:err}, 'Error while getting User')
+        } else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
           db.collection('users').deleteOne({nickname: nickname}, (err, r) => {
             if(err != null) {
-              return callback(null, {success: false})
+              log.error({err:err}, 'Error while deleting User from DB')
             } else {
-              return callback(null, {success: true})
+              res.success = true
             }
           })
         }
       })
-    } else {
-      return callback(null, {success: false})
     }
   })
+  return callback(null, res)
 }
 
 function searchUser(call, callback) {
