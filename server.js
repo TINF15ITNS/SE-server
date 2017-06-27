@@ -33,6 +33,7 @@ server.addProtoService(apiProto.ServerService.service, {
   updatePassword: updatePassword,
   deleteUser: deleteUser,
   searchUser: searchUser,
+  getUserDetails: getUserDetails
 })
 server.bind(config.grpc.uri, grpc.ServerCredentials.createInsecure())
 server.start()
