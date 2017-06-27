@@ -390,11 +390,11 @@ function getUserDetails(call, callback) {
             phone: '',
             email: ''
           }
-          if(name in stored_user) {res.name = stored_user.name}
-          if(surname in stored_user) {res.surname = stored_user.surname}
-          if(birthday in stored_user) {res.birthday = stored_user.birthday}
-          if(phone in stored_user) {res.phone = stored_user.phone}
-          if(email in stored_user) {res.email = stored_user.email}
+          if('name' in stored_user) {res.name = stored_user.name}
+          if('surname' in stored_user) {res.surname = stored_user.surname}
+          if('birthday' in stored_user) {res.birthday = stored_user.birthday}
+          if('phone' in stored_user) {res.phone = stored_user.phone}
+          if('email' in stored_user) {res.email = stored_user.email}
           return callback(null, res)
         }
       })
