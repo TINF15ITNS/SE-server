@@ -366,7 +366,7 @@ function searchUser(call, callback) {
     }
   })
   log.info({response:res}, 'callback')
-  callback(null, res)
+  return callback(null, res)
 }
 
 
