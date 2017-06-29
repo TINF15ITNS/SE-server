@@ -311,11 +311,13 @@ function deleteUser(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
+      return callback(null, res)
     }
     if(validPassword(req.password)) {
       getUser(nickname, (err, stored_user) => {
         if(err != null) {
           log.error({err:err}, 'Error while getting User')
+          return callback(null, res)
         } else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
           db.collection('users').deleteOne({nickname: nickname}, (err, r) => {
             if(err != null) {
@@ -323,13 +325,14 @@ function deleteUser(call, callback) {
             } else {
               res.success = true
             }
+            log.info({response:res}, 'callback')
+            return callback(null, res)
           })
         }
       })
     }
   })
-  log.info({response:res}, 'callback')
-  return callback(null, res)
+  return
 }
 
 function searchUser(call, callback) {
@@ -339,12 +342,14 @@ function searchUser(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
+      return callback(null, res)
     } else {
       log.info("Search User")
       var query = req.query
       db.collection('users').find({ $or: [ { nickname: query }, { name: query }, { surname: query }, { telNumber: query } ] }, {nickname: 1, _id:0}, (err, data) => {
         if(err != null) {
           log.error({err:err}, 'Error while querying DB')
+          return callback(null, res)
         } else {
           data.toArray((err, profiles) => {
             if(err != null) {
@@ -360,13 +365,14 @@ function searchUser(call, callback) {
                 res.success = true
               }
             }
+            log.info({response:res}, 'callback')
+            return callback(null, res)
           })
         }
       })
     }
   })
-  log.info({response:res}, 'callback')
-  return callback(null, res)
+  return
 }
 
 
@@ -377,19 +383,16 @@ function getUserDetails(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
-	  return callback(null, { success: false })
-    } else if(!validNickname(req.user_nickname)) {
-      log.info({user_nickname: req.user_nickname}, "Invalid nickname was sent")
-	  return callback(null, { success: false })
+      return callback(null, res)
+    } else if(!validNickname(req.nickname)) {
+      log.info({nickname: req.nickname}, "Invalid nickname was sent")
+	    return callback(null, res)
     } else{
-      getUser(req.user_nickname, (err, stored_user) => {
-		log.info(stored_user);
+      getUser(req.nickname, (err, stored_user) => {
         if(err != null) {
-            log.error({err: err},"Lookup of user unsuccessfull")
-			return callback(null, { success: false })
+          log.error({err: err},"Lookup of user unsuccessfull")
         } else if(stored_user == null) {
           log.info({nickname: req.nickname}, "no user found")
-          return callback(null, { success: false })
         } else {
           log.info({user: stored_user}, "found user, sending details")
           if('name' in stored_user) {res.name = stored_user.name}
@@ -398,13 +401,13 @@ function getUserDetails(call, callback) {
           if('phone' in stored_user) {res.phone = stored_user.phone}
           if('email' in stored_user) {res.email = stored_user.email}
           res.success = true
-		  log.info({response:res}, 'callback')
-	      return callback(null, res)
         }
+        log.info({response:res}, 'callback')
+        return callback(null, res)
       })
     }
   })
-
+  return
 }
 
 
