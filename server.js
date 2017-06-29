@@ -377,13 +377,16 @@ function getUserDetails(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
+	  return callback(null, { success: false })
     } else if(!validNickname(req.user_nickname)) {
       log.info({user_nickname: req.user_nickname}, "Invalid nickname was sent")
+	  return callback(null, { success: false })
     } else{
-      getUser(req.nickname, (err, stored_user) => {
+      getUser(req.user_nickname, (err, stored_user) => {
+		log.info(stored_user);
         if(err != null) {
-        log.error({err: err},"Lookup of user unsuccessfull")
-        return callback(null, { success: false })
+            log.error({err: err},"Lookup of user unsuccessfull")
+			return callback(null, { success: false })
         } else if(stored_user == null) {
           log.info({nickname: req.nickname}, "no user found")
           return callback(null, { success: false })
@@ -395,12 +398,13 @@ function getUserDetails(call, callback) {
           if('phone' in stored_user) {res.phone = stored_user.phone}
           if('email' in stored_user) {res.email = stored_user.email}
           res.success = true
+		  log.info({response:res}, 'callback')
+	      return callback(null, res)
         }
       })
     }
   })
-  log.info({response:res}, 'callback')
-  return callback(null, res)
+
 }
 
 
