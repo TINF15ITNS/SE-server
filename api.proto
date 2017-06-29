@@ -17,16 +17,16 @@ service ServerService {
 
   // Network
   rpc SearchUser                  (SearchUserRequest) returns (SearchUserResponse) {}
-  rpc GetUserDetails              (GetUserDetailsRequest) returns (GetUserDetailsResponse) {}
+  rpc GetUserDetails              (ByNicknameRequest) returns (GetUserDetailsResponse) {}
   rpc CreateGroup                 (CreateGroupRequest) returns (CreateGroupResponse) {}
   rpc AddUserToGroup              (AddUserToGroupRequest) returns (Response) {} //? AddUser or AddFriendToFriendlist or AddToGroup
-  rpc GetFriendList               (GetFriendListRequest) returns (GetFriendListResponse) {}
-  rpc AddFriendToFriendlist       (AddFriendToFriendlistRequest) returns (Response) {}
-  rpc RemoveFriendFromFriendlist  (RemoveFriendFromFriendlistRequest) returns (Response) {}
+  rpc GetFriendList               (EmptyRequest) returns (GetFriendListResponse) {}
+  rpc AddFriendToFriendlist       (ByNicknameRequest) returns (Response) {}
+  rpc RemoveFriendFromFriendlist  (ByNicknameRequest) returns (Response) {}
   
   // Todo-list
   rpc CreateTodoList      (CreateTodoListRequest) returns (CreateTodoListResponse) {}
-  rpc GetTodoListsForUser (GetTodoListsForUserRequest) returns (GetTodoListsForUserResponse) {}
+  rpc GetTodoListsForUser (EmptyRequest) returns (GetTodoListsForUserResponse) {}
   rpc GetTodoList         (GetTodoListRequest) returns (GetTodoListResponse) {}
   rpc ShareTodoList       (ShareTodoListRequest) returns (Response) {}
   rpc UpdateTodoListEntry (UpdateTodoListEntryRequest) returns (Response) {}
@@ -35,7 +35,7 @@ service ServerService {
   rpc ShareCalendarEntry (ShareCalendarEntryRequest) returns (Response) {}
   
   // Debts
-  rpc GetDebts    (GetDebtsRequest) returns (GetDebtsResponse) {}
+  rpc GetDebts    (EmptyRequest) returns (GetDebtsResponse) {}
   rpc CreateDebt  (CreateDebtRequest) returns (Response) {}
   rpc ConfirmDebt (ConfirmDebtRequest) returns (Response) {}
   rpc UpdateDebt  (UpdateDebtRequest) returns (Response) {}
@@ -44,7 +44,7 @@ service ServerService {
   // Location
   rpc UpdateLocation        (UpdateLocationRequest) returns (Response) {}
   rpc ShareLocation         (ShareLocationRequest) returns (Response) {}
-  rpc GetSharedLocations    (GetSharedLocationsRequest) returns (GetSharedLocationsResponse) {}
+  rpc GetSharedLocations    (EmptyRequest) returns (GetSharedLocationsResponse) {}
   rpc StartDriveByReminder  (StartDriveByReminderRequest) returns (Response) {}
 }
 
@@ -81,8 +81,8 @@ message SearchUserRequest {
   string query = 1;
 }
 
-message GetUserDetailsRequest {
-  string user_nickname = 1;
+message ByNicknameRequest {
+  string nickname = 1;
 }
 
 message CreateGroupRequest {
@@ -95,24 +95,12 @@ message AddUserToGroupRequest {
   int32 group_id = 2;
 }
 
-message GetFriendListRequest {
+message EmptyRequest {
   //Empty
-}
-
-message AddFriendToFriendlistRequest {
-  string friend_nickname = 1;
-}
-
-message RemoveFriendFromFriendlistRequest {
-  string nickname = 1;
 }
 
 message CreateTodoListRequest {
   string name = 1;
-}
-
-message GetTodoListsForUserRequest {
-  //Empty
 }
 
 message GetTodoListRequest {
@@ -134,10 +122,6 @@ message ShareCalendarEntryRequest {
   string creator_nickname = 1;
   int32 group_id = 2;
   bytes entry_data = 3;
-}
-
-message GetDebtsRequest {
-  //Empty
 }
 
 message CreateDebtRequest {
@@ -168,10 +152,6 @@ message UpdateLocationRequest {
 message ShareLocationRequest {
   int32 group_id = 1;
   Location location = 2;
-}
-
-message GetSharedLocationsRequest {
-  //Empty
 }
 
 message StartDriveByReminderRequest {
