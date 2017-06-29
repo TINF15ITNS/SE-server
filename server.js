@@ -311,10 +311,12 @@ function deleteUser(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
+      return callback(null, res)
     } else if(validPassword(req.password)) {
       getUser(nickname, (err, stored_user) => {
         if(err != null) {
           log.error({err:err}, 'Error while getting User')
+          return callback(null, res)
         } else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
           db.collection('users').deleteOne({nickname: nickname}, (err, r) => {
             if(err != null) {
@@ -325,13 +327,14 @@ function deleteUser(call, callback) {
             log.info({response:res}, 'callback')
             return callback(null, res)
           })
+        } else {
+          return callback(null, res)
         }
-        return callback(null, res)
       })
+    } else {
+      return callback(null, res)
     }
-    return callback(null, res)
   })
-  return
 }
 
 function searchUser(call, callback) {
@@ -353,16 +356,13 @@ function searchUser(call, callback) {
           data.toArray((err, profiles) => {
             if(err != null) {
               log.error({err:err}, 'Error while converting data.toArray')
+            } else if(profiles.length == 0) {
+              log.info('no profiles found')
             } else {
-              log.info({profiles:profiles},'converted profiles in array')
-              if(profiles.length == 0){
-                log.info('no profiles found')
-              } else{
-                profiles = profiles.map(elem => elem.nickname)
-                log.info({profiles: profiles}, 'converted to right array')
-                res.nickname_result = profiles
-                res.success = true
-              }
+              profiles = profiles.map(elem => elem.nickname)
+              log.info({profiles: profiles}, 'converted to right array')
+              res.nickname_result = profiles
+              res.success = true
             }
             log.info({response:res}, 'callback')
             return callback(null, res)
@@ -371,7 +371,6 @@ function searchUser(call, callback) {
       })
     }
   })
-  return
 }
 
 
@@ -382,8 +381,10 @@ function getUserDetails(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
+      return callback(null, res)
     } else if(!validNickname(req.nickname)) {
       log.info({nickname: req.nickname}, "Invalid nickname was sent")
+      return callback(null, res)
     } else{
       getUser(req.nickname, (err, stored_user) => {
         if(err != null) {
@@ -403,9 +404,7 @@ function getUserDetails(call, callback) {
         return callback(null, res)
       })
     }
-    return callback(null, res)
   })
-  return
 }
 
 
