@@ -436,7 +436,7 @@ function getFriendList(call, callback) {
       log.info("call with insufficient credentials")
       return callback(null, res)
     } else{
-      db.collection('users').find({nickname: res.nickname}, {}).toArray((err, users) => {
+      db.collection('users').find({nickname: nickname}, {}).toArray((err, users) => {
         if(err != null) {
           log.error({err: err},"Lookup of user unsuccessfull")
         } else if(users.length != 1) {
