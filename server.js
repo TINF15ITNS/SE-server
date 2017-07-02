@@ -88,6 +88,18 @@ function getUser(nickname, callback) {
   })
 }
 
+function removeFromFriendlistsOnDelete(nickname, friends, callback) {
+  log.info({nickname: nickname, friends: friends}, 'removing deleted user from friendlists')
+  db.collection('users').updateMany({ nickname: { $in: friends }}, { $pull: { listed_in_friendslist: nickname }}, (err, r) => {
+    if(err != null) {
+      return callback(null, false)
+    } else {
+      return callback(null, true)
+    }
+  })
+}
+
+
 // extracts the token from metadata, verifies the correct signature
 // the callback takes a verified existing nickname as second argument,
 // if none was found an error is returned as first argument
@@ -304,7 +316,6 @@ function updatePassword(call, callback) {
 }
 
 //TODO: Nach Todolisten, etc suchen die mit dem account verbunden sind und ebenfalls löschen!
-//TODO iterate over list of added people and delete from their friendlists
 function deleteUser(call, callback) {
   var metadata = call.metadata
   var req = call.request
@@ -319,7 +330,13 @@ function deleteUser(call, callback) {
           log.error({err:err}, 'Error while getting User')
           return callback(null, res)
         } else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
-
+          removeFromFriendlistsOnDelete(nickname, stored_user.listed_in_friendslist, (err, r) => {
+            if(!r) {
+              log.warn({nickname:nickname, friends: stored_user.listed_in_friendslist}, 'error deleting deleted user from friendslist')
+            } else {
+              log.info({nickname:nickname, friends: store_user.friends_in_friendslist}, 'deleted deleted user from friendslist')
+            }
+          })
           db.collection('users').deleteOne({nickname: nickname}, (err, r) => {
             if(err != null) {
               log.error({err:err}, 'Error while deleting User from DB')
@@ -465,7 +482,7 @@ function addFriendToFriendlist(call, callback) {
               } else{
                 db.collection('users').updateOne({ nickname: friend.nickname}, {$addToSet: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
-                    log.warning('Error updating listed_in_friendslist')
+                    log.warn('Error updating listed_in_friendslist')
                   }
                 })
                 res.success = true
@@ -499,7 +516,7 @@ function removeFriendFromFriendlist(call, callback) {
             log.error({err: err},"Error looking up friend")
             return callback(null, res)
           } else if(!found) {
-            log.warning("friend not found in db")
+            log.warn("friend not found in db")
             db.collection('users').updateOne({ nickname: nickname },{ $pull: { friendlist: req.nickname }}, (err, r) => {
               if(err != null) {
               log.error({err: err},"Error removing from database array")
@@ -516,7 +533,7 @@ function removeFriendFromFriendlist(call, callback) {
               } else{
                 db.collection('users').updateOne({ nickname: friend.nickname}, {$pull: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
-                    log.warning('Error updating listed_in_friendslist')
+                    log.warn('Error updating listed_in_friendslist')
                   }
                 })
                 res.success = true
