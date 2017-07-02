@@ -420,7 +420,7 @@ function getFriendList(call, callback) {
     } else{
       db.collection('users').find({nickname: res.nickname}, {}).toArray((err, users) => {
         if(err != null) {
-        log.error({err: err},"Lookup of user unsuccessfull")
+          log.error({err: err},"Lookup of user unsuccessfull")
         } else if(users.length() != 1) {
           log.info("not 1 user found")
         } else {
@@ -451,9 +451,11 @@ function addFriendToFriendlist(call, callback) {
       } else{
         getUser(req.nickname, (err, friend) => {
           if(err != null) {
-          log.error({err: err},"Error looking up friend")
+            log.error({err: err},"Error looking up friend")
+            return callback(null, res)
           } else if(friend == null) {
             log.info("friend not found in db")
+            return callback(null, res)
           } else {
             log.info({nickname: req.nickname}, "found friend, adding to friendlist")
             db.collection('users').updateOne({ nickname: nickname },{ $addToSet: { friendlist: req.nickname }}, (err, r) => {
@@ -467,10 +469,10 @@ function addFriendToFriendlist(call, callback) {
                 })
                 res.success = true
               }
+              log.info({response:res}, 'callback')
+              return callback(null, res)
             })
           }
-          log.info({response:res}, 'callback')
-          return callback(null, res)
         })
       }
     }
@@ -493,7 +495,8 @@ function removeFriendFromFriendlist(call, callback) {
       } else{
         searchForUser(req.nickname, (err, found) => {
           if(err != null) {
-          log.error({err: err},"Error looking up friend")
+            log.error({err: err},"Error looking up friend")
+            return callback(null, res)
           } else if(!found) {
             log.warning("friend not found in db")
             db.collection('users').updateOne({ nickname: nickname },{ $pull: { friendlist: req.nickname }}, (err, r) => {
@@ -502,6 +505,8 @@ function removeFriendFromFriendlist(call, callback) {
               } else{
                 res.success = true
               }
+              log.info({response:res}, 'callback')
+              return callback(null, res)
             })
           } else {
             db.collection('users').updateOne({ nickname: nickname },{ $pull: { friendlist: req.nickname }}, (err, r) => {
@@ -515,10 +520,10 @@ function removeFriendFromFriendlist(call, callback) {
                 })
                 res.success = true
               }
+              log.info({response:res}, 'callback')
+              return callback(null, res)
             })
           }
-          log.info({response:res}, 'callback')
-          return callback(null, res)
         })
       }
     }
