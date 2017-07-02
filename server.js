@@ -443,7 +443,7 @@ function getFriendList(call, callback) {
           log.info("not 1 user found")
         } else {
           log.info({user: stored_user}, "found user, sending friendlist")
-          if('friendlist' in users[0]) {res.friendlist = users[0].friendlist}
+          if('friendlist' in users[0]) {res.friend_list = users[0].friendlist}
           res.success = true
         }
         log.info({response:res}, 'callback')
