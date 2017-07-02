@@ -304,6 +304,7 @@ function updatePassword(call, callback) {
 }
 
 //TODO: Nach Todolisten, etc suchen die mit dem account verbunden sind und ebenfalls löschen!
+//TODO iterate over list of added people and delete from their friendlists
 function deleteUser(call, callback) {
   var metadata = call.metadata
   var req = call.request
@@ -448,6 +449,47 @@ function addFriendToFriendlist(call, callback) {
       log.info({nickname: req.nickname}, 'no valid friend nickname was given')
       return callback(null, res)
       } else{
+      getUser(req.nickname, (err, friend) => {
+        if(err != null) {
+        log.error({err: err},"Error looking up friend")
+        } else if(friend == null) {
+          log.info("friend not found in db")
+        } else {
+          log.info({nickname: req.nickname}, "found friend, adding to friendlist")
+          db.collection('users').updateOne({ nickname: nickname },{ $addToSet: { friendlist: req.nickname }}, (err, r) => {
+            if(err != null) {
+            log.error({err: err},"Error adding to database array")
+            } else{
+              db.collection('users').updateOne({ nickname: friend.nickname}, {$addToSet { listed_in_friendslist: nickname }}).then( (err, r) => {
+                if(err != null) {
+                  log.warning('Error updating listed_in_friendslist')
+                }
+              })
+              res.success = true
+          })
+        }
+        log.info({response:res}, 'callback')
+        return callback(null, res)
+      })
+      }
+    }
+  })
+}
+
+
+function removeFriendFromFriendlist(call, callback) {
+  var metadata = call.metadata;
+  var req = call.request;
+  var res = { success: false }
+  loginWithToken(metadata, (err, nickname) => {
+    if (err != null) {
+      log.info("call with insufficient credentials")
+      return callback(null, res)
+    } else{
+      if(!validNickname(req.nickname)) {
+      log.info({nickname: req.nickname}, 'no valid friend nickname was given')
+      return callback(null, res)
+      } else{
       searchForUser(req.nickname, (err, found) => {
         if(err != null) {
         log.error({err: err},"Error looking up friend")
@@ -468,40 +510,6 @@ function addFriendToFriendlist(call, callback) {
       }
     }
   })
-}
-
-
-function removeFriendFromFriendlist(call, callback) {
-  var metadata = call.metadata;
-  var req = call.request;
-  var res = { success: false }
-  loginWithToken(metadata, (err, nickname) => {
-    if (err != null) {
-      log.info("call with insufficient credentials")
-    } else if(!validNickname(req.nickname)) {
-      log.info({user_nickname: req.nickname}, "Invalid nickname was sent")
-    } else{
-      //getUser(req.nickname, (err, stored_user) => {
-        //if(err != null) {
-        //log.error({err: err},"Lookup of user unsuccessfull")
-        //return callback(null, { success: false })
-        //} else if(stored_user == null) {
-          //log.info({nickname: req.nickname}, "no user found")
-          //return callback(null, { success: false })
-        //} else {
-          //log.info({user: stored_user}, "found user, sending details")
-          //if('name' in stored_user) {res.name = stored_user.name}
-          //if('surname' in stored_user) {res.surname = stored_user.surname}
-          //if('birthday' in stored_user) {res.birthday = stored_user.birthday}
-          //if('phone' in stored_user) {res.phone = stored_user.phone}
-          //if('email' in stored_user) {res.email = stored_user.email}
-          //res.success = true
-        //}
-      //})
-    }
-  })
-  log.info({response:res}, 'callback')
-  return callback(null, res)
 }
 
 
