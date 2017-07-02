@@ -439,7 +439,7 @@ function getFriendList(call, callback) {
       db.collection('users').find({nickname: res.nickname}, {}).toArray((err, users) => {
         if(err != null) {
           log.error({err: err},"Lookup of user unsuccessfull")
-        } else if(users.length() != 1) {
+        } else if(users.length != 1) {
           log.info("not 1 user found")
         } else {
           log.info({user: stored_user}, "found user, sending friendlist")
@@ -482,7 +482,7 @@ function addFriendToFriendlist(call, callback) {
               } else{
                 db.collection('users').updateOne({ nickname: friend.nickname}, {$addToSet: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
-                    log.warn('Error updating listed_in_friendslist')
+                    log.warn({err:err}, 'Error updating listed_in_friendslist')
                   }
                 })
                 res.success = true
@@ -533,7 +533,7 @@ function removeFriendFromFriendlist(call, callback) {
               } else{
                 db.collection('users').updateOne({ nickname: friend.nickname}, {$pull: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
-                    log.warn('Error updating listed_in_friendslist')
+                    log.warn({err:err}, 'Error updating listed_in_friendslist')
                   }
                 })
                 res.success = true
