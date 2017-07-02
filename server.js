@@ -415,28 +415,23 @@ function getFriendList(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
+      return callback(null, res)
     } else{
-      //getUser(req.nickname, (err, stored_user) => {
-        //if(err != null) {
-        //log.error({err: err},"Lookup of user unsuccessfull")
-        //return callback(null, { success: false })
-        //} else if(stored_user == null) {
-          //log.info({nickname: req.nickname}, "no user found")
-          //return callback(null, { success: false })
-        //} else {
-          //log.info({user: stored_user}, "found user, sending details")
-          //if('name' in stored_user) {res.name = stored_user.name}
-          //if('surname' in stored_user) {res.surname = stored_user.surname}
-          //if('birthday' in stored_user) {res.birthday = stored_user.birthday}
-          //if('phone' in stored_user) {res.phone = stored_user.phone}
-          //if('email' in stored_user) {res.email = stored_user.email}
-          //res.success = true
-        //}
-      //})
+      db.collection('users').find({nickname: res.nickname}, {}).toArray((err, users) => {
+        if(err != null) {
+        log.error({err: err},"Lookup of user unsuccessfull")
+        } else if(users.length() != 1) {
+          log.info("not 1 user found")
+        } else {
+          log.info({user: stored_user}, "found user, sending friendlist")
+          if('friendlist' in users[0]) {res.friendlist = users[0].friendlist}
+          res.success = true
+        }
+        log.info({response:res}, 'callback')
+        return callback(null, res)
+      })
     }
   })
-  log.info({response:res}, 'callback')
-  return callback(null, res)
 }
 
 
@@ -447,30 +442,32 @@ function addFriendToFriendlist(call, callback) {
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
       log.info("call with insufficient credentials")
-    } else if(!validNickname(req.friend_nickname)) {
-      log.info({user_nickname: req.friend_nickname}, "Invalid nickname was sent")
+      return callback(null, res)
     } else{
-      //getUser(req.nickname, (err, stored_user) => {
-        //if(err != null) {
-        //log.error({err: err},"Lookup of user unsuccessfull")
-        //return callback(null, { success: false })
-        //} else if(stored_user == null) {
-          //log.info({nickname: req.nickname}, "no user found")
-          //return callback(null, { success: false })
-        //} else {
-          //log.info({user: stored_user}, "found user, sending details")
-          //if('name' in stored_user) {res.name = stored_user.name}
-          //if('surname' in stored_user) {res.surname = stored_user.surname}
-          //if('birthday' in stored_user) {res.birthday = stored_user.birthday}
-          //if('phone' in stored_user) {res.phone = stored_user.phone}
-          //if('email' in stored_user) {res.email = stored_user.email}
-          //res.success = true
-        //}
-      //})
+      if(!validNickname(req.nickname)) {
+      log.info({nickname: req.nickname}, 'no valid friend nickname was given')
+      return callback(null, res)
+      } else{
+      searchForUser(req.nickname, (err, found) => {
+        if(err != null) {
+        log.error({err: err},"Error looking up friend")
+        } else if(!found) {
+          log.info("friend not found in db")
+        } else {
+          log.info({nickname: req.nickname}, "found friend, adding to friendlist")
+          db.collection('users').updateOne({ nickname: nickname },{ $addToSet : { friendlist: req.nickname }}, (err, r) => {
+            if(err != null) {
+            log.error({err: err},"Error adding to database array")
+            } else{
+              res.success = true
+          })
+        }
+        log.info({response:res}, 'callback')
+        return callback(null, res)
+      })
+      }
     }
   })
-  log.info({response:res}, 'callback')
-  return callback(null, res)
 }
 
 
