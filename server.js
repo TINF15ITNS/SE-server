@@ -319,6 +319,7 @@ function deleteUser(call, callback) {
           log.error({err:err}, 'Error while getting User')
           return callback(null, res)
         } else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
+
           db.collection('users').deleteOne({nickname: nickname}, (err, r) => {
             if(err != null) {
               log.error({err:err}, 'Error while deleting User from DB')
@@ -462,7 +463,7 @@ function addFriendToFriendlist(call, callback) {
               if(err != null) {
               log.error({err: err},"Error adding to database array")
               } else{
-                db.collection('users').updateOne({ nickname: friend.nickname}, {$addToSet { listed_in_friendslist: nickname }}).then( (err, r) => {
+                db.collection('users').updateOne({ nickname: friend.nickname}, {$addToSet: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
                     log.warning('Error updating listed_in_friendslist')
                   }
@@ -513,7 +514,7 @@ function removeFriendFromFriendlist(call, callback) {
               if(err != null) {
               log.error({err: err},"Error removing from database array")
               } else{
-                db.collection('users').updateOne({ nickname: friend.nickname}, {$pull { listed_in_friendslist: nickname }}).then( (err, r) => {
+                db.collection('users').updateOne({ nickname: friend.nickname}, {$pull: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
                     log.warning('Error updating listed_in_friendslist')
                   }
