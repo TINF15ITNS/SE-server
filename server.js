@@ -491,23 +491,35 @@ function removeFriendFromFriendlist(call, callback) {
       log.info({nickname: req.nickname}, 'no valid friend nickname was given')
       return callback(null, res)
       } else{
-      searchForUser(req.nickname, (err, found) => {
-        if(err != null) {
-        log.error({err: err},"Error looking up friend")
-        } else if(!found) {
-          log.info("friend not found in db")
-        } else {
-          log.info({nickname: req.nickname}, "found friend, adding to friendlist")
-          db.collection('users').updateOne({ nickname: nickname },{ $addToSet : { friendlist: req.nickname }}, (err, r) => {
-            if(err != null) {
-            log.error({err: err},"Error adding to database array")
-            } else{
-              res.success = true
-          })
-        }
-        log.info({response:res}, 'callback')
-        return callback(null, res)
-      })
+        searchForUser(req.nickname, (err, found) => {
+          if(err != null) {
+          log.error({err: err},"Error looking up friend")
+          } else if(!found) {
+            log.warning("friend not found in db")
+            db.collection('users').updateOne({ nickname: nickname },{ $pull: { friendlist: req.nickname }}, (err, r) => {
+              if(err != null) {
+              log.error({err: err},"Error removing from database array")
+              } else{
+                res.success = true
+              }
+            })
+          } else {
+            db.collection('users').updateOne({ nickname: nickname },{ $pull: { friendlist: req.nickname }}, (err, r) => {
+              if(err != null) {
+              log.error({err: err},"Error removing from database array")
+              } else{
+                db.collection('users').updateOne({ nickname: friend.nickname}, {$pull { listed_in_friendslist: nickname }}).then( (err, r) => {
+                  if(err != null) {
+                    log.warning('Error updating listed_in_friendslist')
+                  }
+                })
+                res.success = true
+              }
+            })
+          }
+          log.info({response:res}, 'callback')
+          return callback(null, res)
+        })
       }
     }
   })
