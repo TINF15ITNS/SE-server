@@ -442,7 +442,7 @@ function getFriendList(call, callback) {
         } else if(user == null) {
           log.warn({nickname: nickname}, "no user found")
         } else {
-          log.info({user: stored_user}, "found user, sending friendlist")
+          log.info({user: user}, "found user, sending friendlist")
           if('friendlist' in user) {res.friend_list = user.friendlist}
           res.success = true
         }
