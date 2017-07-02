@@ -174,7 +174,7 @@ function validSurname(surname) {
   return re.test(surname);
 }
 function validBirthday(birthday) {
-  return Date.parse(birthday) < Date.now(); //Born before this moment?
+  return birthday < Date.now(); //Born before this moment?
 }
 function validPhone(phone) {
   var re = /^[0-9]*$/; //only numbers

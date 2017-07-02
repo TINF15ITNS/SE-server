@@ -62,7 +62,7 @@ message LoginRequest {
 message UpdateProfileRequest {
   string name = 1;
   string surname = 2;
-  string birthday = 3;
+  int64 birthday = 3;
   string phone = 4;
   string email = 5;
   //bool share_location = 6;
@@ -178,7 +178,7 @@ message GetUserDetailsResponse {
   bool success = 1;
   string name = 2;
   string surname = 3;
-  string birthday = 4;
+  int64 birthday = 4;
   string phone = 5;
   string email = 6;
 }
