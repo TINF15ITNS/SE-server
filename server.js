@@ -531,7 +531,7 @@ function removeFriendFromFriendlist(call, callback) {
               if(err != null) {
               log.error({err: err},"Error removing from database array")
               } else{
-                db.collection('users').updateOne({ nickname: friend.nickname}, {$pull: { listed_in_friendslist: nickname }}).then( (err, r) => {
+                db.collection('users').updateOne({ nickname: req.nickname}, {$pull: { listed_in_friendslist: nickname }}).then( (err, r) => {
                   if(err != null) {
                     log.warn({err:err}, 'Error updating listed_in_friendslist')
                   }
