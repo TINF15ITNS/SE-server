@@ -228,34 +228,34 @@ function register(call,callback) {
 
 function login(call, callback) {
   var req = getRequest(call)
-  var log = log.child({ function: 'login', nickname: req.nickname })
-  log.info('Login attempt')
+  var logger = log.child({ function: 'login', nickname: req.nickname })
+  logger.info('Login attempt')
   if(validNickname(req.nickname) && validPassword(req.password)) {
     getUser(req.nickname, (err, stored_user) => {
       if(err != null) {
-        log.error({ err: err }, 'Login not successfull')
+        logger.error({ err: err }, 'Login not successfull')
         return callback(null, {success: false})
       }
       else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
         new_issued_at = Date.now()
         new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
-        log.debug({token:new_token, secret:SECRET}, 'token issued')
+        logger.debug({token:new_token, secret:SECRET}, 'token issued')
         db.collection('users').updateOne({nickname: req.nickname}, {$set: {token: {issued_at: new_issued_at}}}, (err, r) => {
           if(err != null) {
-            log.error({ err: err }, 'Login not successfull')
+            logger.error({ err: err }, 'Login not successfull')
             return callback(null, {success : false})
           } else {
-            log.info('Login successfull')
+            logger.info('Login successfull')
             return callback(null, {success: true, token: new_token})
           }
         })
       } else {
-        log.warning('Login not successfull')
+        logger.warning('Login not successfull')
         return callback(null, {success: false})
       }
     })
   } else {
-    log.warning('Login not successfull')
+    logger.warning('Login not successfull')
     return callback(null, {success: false})
   }
 }
