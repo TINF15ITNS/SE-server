@@ -7,6 +7,7 @@ const fs = require('fs')
     , jwt = require('jsonwebtoken')
     , uuidv4 = require('node-uuid');
 
+// Load server configuration from file
 var config = yaml.safeLoad(fs.readFileSync('/etc/friendscomm.yml', 'utf8'))
 
 var apiProto = grpc.load('./api.proto').serverPackage
@@ -99,6 +100,11 @@ function removeFromFriendlistsOnDelete(nickname, friends, callback) {
   })
 }
 
+function getRequest(call) {
+  req = call.request
+  if('nickname' in req) { req.nickname = req.nickname.toLowerCase() }
+  return req
+}
 
 // extracts the token from metadata, verifies the correct signature
 // the callback takes a verified existing nickname as second argument,
@@ -156,7 +162,7 @@ function validatePassword(savedHash, savedSalt, savedIterations, passwordAttempt
 // ================
 
 function validNickname(nickname) {
-  var re = /^\w{1,}$/; //any length is allowed but only letters and numbers
+  var re = /([a-z0-9_])+$/; //any length, but only lowercase alphanumeric and underscore
   return re.test(nickname);
 }
 
@@ -189,9 +195,11 @@ function validEmail(email) {
 // Implementations of gRPC functions
 // =================================
 
+// function providing account registration functionality
 function register(call,callback) {
-  var req = call.request;
-  log.info({nickname: req.nickname},'New register attempt')
+  var req = getRequest(call);
+  var res = { success: false }
+  log.info({nickname: req.nickname},'Registration attempt')
   if(validNickname(req.nickname) && validPassword(req.password)) {
     searchForUser(req.nickname, (err, nicknameExists) => {
       if(!nicknameExists && err == null) {
@@ -219,21 +227,22 @@ function register(call,callback) {
 }
 
 function login(call, callback) {
-  var req = call.request
-  log.info({payload: req}, 'New login attempt')
+  var req = getRequest(call)
+  var log = log.child({ function: 'login', nickname: req.nickname })
+  log.info({'Login attempt')
   if(validNickname(req.nickname) && validPassword(req.password)) {
     getUser(req.nickname, (err, stored_user) => {
       if(err != null) {
-        log.info('Login not successfull')
+        log.error({ err: err }, 'Login not successfull')
         return callback(null, {success: false})
       }
       else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
         new_issued_at = Date.now()
         new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
-        log.info({token:new_token, secret:SECRET}, 'token issued')
+        log.debug({token:new_token, secret:SECRET}, 'token issued')
         db.collection('users').updateOne({nickname: req.nickname}, {$set: {token: {issued_at: new_issued_at}}}, (err, r) => {
           if(err != null) {
-            log.info('Login not successfull')
+            log.error({ err: err }, 'Login not successfull')
             return callback(null, {success : false})
           } else {
             log.info('Login successfull')
@@ -241,19 +250,19 @@ function login(call, callback) {
           }
         })
       } else {
-        log.info('Login not successfull')
+        log.warning('Login not successfull')
         return callback(null, {success: false})
       }
     })
   } else {
-    log.info('Login not successfull')
+    log.warning('Login not successfull')
     return callback(null, {success: false})
   }
 }
 
 function updateProfile(call, callback) {
   var metadata = call.metadata
-  var req = call.request
+  var req = getRequest(call)
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
@@ -267,7 +276,7 @@ function updateProfile(call, callback) {
       update.surname = req.surname
     }
     if(validBirthday(req.birthday)) {
-      update.birthday = req.birthday //TODO:convert to timestamp
+      update.birthday = req.birthday
     }
     if(validPhone(req.phone)) {
       update.phone = req.phone
@@ -288,7 +297,7 @@ function updateProfile(call, callback) {
 
 function updatePassword(call, callback) {
   var metadata = call.metadata
-  var req = call.request
+  var req = getRequest(call)
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
       log.info("call with insufficient credentials")
@@ -318,7 +327,7 @@ function updatePassword(call, callback) {
 //TODO: Nach Todolisten, etc suchen die mit dem account verbunden sind und ebenfalls löschen!
 function deleteUser(call, callback) {
   var metadata = call.metadata
-  var req = call.request
+  var req = getRequest(call)
   var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
@@ -358,7 +367,7 @@ function deleteUser(call, callback) {
 
 function searchUser(call, callback) {
   var metadata = call.metadata
-  var req = call.request
+  var req = getRequest(call)
   var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if(err != null) {
@@ -395,7 +404,7 @@ function searchUser(call, callback) {
 
 function getUserDetails(call, callback) {
   var metadata = call.metadata;
-  var req = call.request;
+  var req = getRequest(call);
   var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
@@ -429,7 +438,7 @@ function getUserDetails(call, callback) {
 
 function getFriendList(call, callback) {
   var metadata = call.metadata;
-  var req = call.request;
+  var req = getRequest(call);
   var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
@@ -456,7 +465,7 @@ function getFriendList(call, callback) {
 
 function addFriendToFriendlist(call, callback) {
   var metadata = call.metadata;
-  var req = call.request;
+  var req = getRequest(call);
   var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
@@ -500,7 +509,7 @@ function addFriendToFriendlist(call, callback) {
 
 function removeFriendFromFriendlist(call, callback) {
   var metadata = call.metadata;
-  var req = call.request;
+  var req = getRequest(call);
   var res = { success: false }
   loginWithToken(metadata, (err, nickname) => {
     if (err != null) {
