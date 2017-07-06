@@ -208,7 +208,7 @@ function register(call,callback) {
         new_user.token = {}
         new_user.token.issued_at = new_issued_at
         db.collection('users').insertOne(new_user, (err, r) => {
-          if(err !0 null) {
+          if(err != null) {
             logger.error({err: err}, 'Error inserting into db')
           } else if(r.insertedCount != 1 || r.result.ok != 1) {
             logger.warning('Problem inserting into db')
