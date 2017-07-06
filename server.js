@@ -47,17 +47,17 @@ log.info({uri: config.grpc.uri}, 'Started gRPC server')
 // ===================
 
 function searchForUser(nickname, callback) {
-  log.info({nickname: nickname}, 'looking for user in db')
+  log.debug({nickname: nickname}, 'looking for user in db')
   db.collection('users').find({nickname: nickname}).count((err, count) => {
     if(err != null) {
-    log.error({err: err}, 'Error Searching db')
+    log.debug({err: err}, 'Error Searching db')
     return callback(err, null)
     }
     else if(count == 0) {
-      log.info({nickname: nickname}, 'no user found in db')
+      log.debug({nickname: nickname}, 'no user found in db')
       return callback(null, false)
     } else {
-      log.info({nickname: nickname}, 'found a user in db')
+      log.debug({nickname: nickname}, 'found a user in db')
       return callback(null, true)
     }
   })
@@ -65,7 +65,7 @@ function searchForUser(nickname, callback) {
 
 //TODO allow filter of name
 function getUser(nickname, callback) {
-  log.info({nickname: nickname}, 'getting user from db')
+  log.debug({nickname: nickname}, 'getting user from db')
   db.collection('users').find({nickname: nickname}).toArray((err, docs) => {
     if(err != null) {
       return callback(err, null)
