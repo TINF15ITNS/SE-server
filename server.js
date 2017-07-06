@@ -191,7 +191,7 @@ function register(call,callback) {
   var logger = log.child({function: 'register', nickname: req.nickname})
   logger.info('Registration attempt')
   if(!validNickname(req.nickname) || !validPassword(req.password)) {
-    logger.warning('No success, invalid input')
+    logger.warn('No success, invalid input')
     return callback(null, res)
   } else {
     searchForUser(req.nickname, (err, nicknameExists) => {
@@ -211,7 +211,7 @@ function register(call,callback) {
           if(err != null) {
             logger.error({err: err}, 'Error inserting into db')
           } else if(r.insertedCount != 1 || r.result.ok != 1) {
-            logger.warning('Problem inserting into db')
+            logger.warn('Problem inserting into db')
           } else {
             res.success = true
             res.token = new_token
@@ -231,7 +231,7 @@ function login(call, callback) {
   var logger = log.child({ function: 'login', nickname: req.nickname })
   logger.info('Login attempt')
   if(!validNickname(req.nickname) || !validPassword(req.password)) {
-    logger.warning('No success, invalid input')
+    logger.warn('No success, invalid input')
     return callback(null, res)
   } else {
     getUser(req.nickname, (err, stored_user) => {
@@ -239,9 +239,9 @@ function login(call, callback) {
         logger.error({ err: err }, 'Error getting userdata from db')
         return callback(null, res)
       } else if(stored_user == null) {
-        logger.warning('User not found in database')
+        logger.warn('User not found in database')
       } else if(!validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
-        logger.warning('Invalid password given')
+        logger.warn('Invalid password given')
         return callback(null, res)
       } else {
         new_issued_at = Date.now()
