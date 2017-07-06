@@ -46,17 +46,6 @@ log.info({uri: config.grpc.uri}, 'Started gRPC server')
 // Database operations
 // ===================
 
-function insertUser(user, callback) {
-  log.info({user : user}, 'inserting user in db')
-  if(user != null) {
-    db.collection('users').insertOne(user, (err, r) => {
-      return callback(err, r.insertedCount == 1 && r.result.ok == 1)
-    })
-  } else {
-    return callback(new Error('EmptyArgument'), false)
-  }
-}
-
 function searchForUser(nickname, callback) {
   log.info({nickname: nickname}, 'looking for user in db')
   db.collection('users').find({nickname: nickname}).count((err, count) => {
@@ -199,64 +188,78 @@ function validEmail(email) {
 function register(call,callback) {
   var req = getRequest(call);
   var res = { success: false }
-  log.info({nickname: req.nickname},'Registration attempt')
-  if(validNickname(req.nickname) && validPassword(req.password)) {
+  var logger = log.child({function: 'register', nickname: req.nickname})
+  logger.info('Registration attempt')
+  if(!validNickname(req.nickname) || !validPassword(req.password)) {
+    logger.warning('No success, invalid input')
+    return callback(null, res)
+  } else {
     searchForUser(req.nickname, (err, nicknameExists) => {
-      if(!nicknameExists && err == null) {
-        log.info('Registration is possible')
+      if(err != null) {
+        logger.error({ err: err}, 'Error looking user up')
+      } else if(nicknameExists) {
+        logger.info('Nickname exists')
+      } else {
+        logger.info('Registration possible')
         new_user = new User(req.nickname, req.password)
         new_issued_at = Date.now()
         new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
+        logger.debug({new_token: new_token}, 'Generated token')
         new_user.token = {}
         new_user.token.issued_at = new_issued_at
-        console.log(new_user)
-        insertUser(new_user, (err, success) => {
-          if(err != null) {
-            return callback(null, {success: false})
+        db.collection('users').insertOne(new_user, (err, r) => {
+          if(err !0 null) {
+            logger.error({err: err}, 'Error inserting into db')
+          } else if(r.insertedCount != 1 || r.result.ok != 1) {
+            logger.warning('Problem inserting into db')
           } else {
-            callback(null, {success: success, token: new_token})
+            res.success = true
+            res.token = new_token
+            logger.info('Registration successfull')
           }
+          logger.debug({ res: res }, 'callback')
+          return callback(null, res)
         })
-      } else {
-        callback(null, {success: false})
       }
     })
-  } else {
-    return callback(null, {success: false})
   }
 }
 
 function login(call, callback) {
   var req = getRequest(call)
+  var res = { success: false }
   var logger = log.child({ function: 'login', nickname: req.nickname })
   logger.info('Login attempt')
-  if(validNickname(req.nickname) && validPassword(req.password)) {
+  if(!validNickname(req.nickname) || !validPassword(req.password)) {
+    logger.warning('No success, invalid input')
+    return callback(null, res)
+  } else {
     getUser(req.nickname, (err, stored_user) => {
       if(err != null) {
-        logger.error({ err: err }, 'Login not successfull')
-        return callback(null, {success: false})
-      }
-      else if(stored_user != null && validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
+        logger.error({ err: err }, 'Error getting userdata from db')
+        return callback(null, res)
+      } else if(stored_user == null) {
+        logger.warning('User not found in database')
+      } else if(!validatePassword(stored_user.password.hash, stored_user.password.salt, stored_user.password.iterations, req.password)) {
+        logger.warning('Invalid password given')
+        return callback(null, res)
+      } else {
         new_issued_at = Date.now()
         new_token = jwt.sign({nickname: req.nickname, iat: new_issued_at}, SECRET)
         logger.debug({token:new_token, secret:SECRET}, 'token issued')
         db.collection('users').updateOne({nickname: req.nickname}, {$set: {token: {issued_at: new_issued_at}}}, (err, r) => {
           if(err != null) {
-            logger.error({ err: err }, 'Login not successfull')
-            return callback(null, {success : false})
+            logger.error({ err: err }, 'Error inserting new issued_at in db')
           } else {
+            res.success = true
+            res.token = new_token
             logger.info('Login successfull')
-            return callback(null, {success: true, token: new_token})
           }
+          logger.debug({ res: res }, 'callback')
+          return callback(null, res)
         })
-      } else {
-        logger.warning('Login not successfull')
-        return callback(null, {success: false})
       }
     })
-  } else {
-    logger.warning('Login not successfull')
-    return callback(null, {success: false})
   }
 }
 
