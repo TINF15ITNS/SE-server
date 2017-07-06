@@ -229,7 +229,7 @@ function register(call,callback) {
 function login(call, callback) {
   var req = getRequest(call)
   var log = log.child({ function: 'login', nickname: req.nickname })
-  log.info({'Login attempt'})
+  log.info('Login attempt')
   if(validNickname(req.nickname) && validPassword(req.password)) {
     getUser(req.nickname, (err, stored_user) => {
       if(err != null) {
